@@ -1,5 +1,5 @@
 /**
- * thegrep - Tar Heel egre
+ * thegrep - Tar Heel egrep
  *
  * Author(s): 
  * ONYEN(s): 
