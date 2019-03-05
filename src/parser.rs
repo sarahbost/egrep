@@ -4,8 +4,8 @@ use std::iter::Peekable;
 /**
  * thbc - Tar Heel Egrep - Parser
  *
- * Author: Sarah Bost
- * ONYEN: sbost99
+ * Author: Sarah Bost, Shannon Goad
+ * ONYEN: sbost99, sgoad13
  *
  * UNC Honor Pledge: I pledge I have received no unauthorized aid
  * on this assignment. I further pledge not to distribute my solution
@@ -81,37 +81,35 @@ impl<'tokens> Parser<'tokens> {
  */
 impl<'tokens> Parser<'tokens> {
     fn ast(&mut self) -> Result<AST, String> {
-        match self.take_next_token()? {
-        //match tokens call functions
-        
-        }
-        
-        
-        
-        x
+       return self.atom(); 
     }
 
-    //Atom -> lparen Expr rparen | number according to grammar
-    fn atom(&mut self) -> Result<Expr, String> {
+    //Atom -> lparen RegExpr rparen | AnyChar | Char  according to grammar
+    fn atom(&mut self) -> Result<AST, String> {
         //Take next toke if there is one (and doesn't throw error)
-        match self.take_next_token()? {
-            //if the token is a number, make a new Expr::Num and return
-            //Calls num helper function that makes and returns an Expr
-            Token::Number(value) => {
-                let y: Expr = num(value);
-                return Ok(y);
-            }
-
-            //If token is an LParen, input should be lparen Expr RParen
-            //Consume tokens in this order and return the Expr
+        let t: Token = self.take_next_token()?;
+        match t {
+            //if the token is anychar, make a new AST and return
+            Token::AnyChar => {
+                return Ok(t);
+            },
+            //If token is an LParen, input should follow lparen AST RParen
+            //Consume tokens in this order and return the AST
             Token::LParen => {
-                let x = self.expr()?;
-
-                self.consume_token(Token::RParen)?;
-
+                // x is next ast or error
+                let x = self.ast()?;
+                //r should be rparen
+                let r = self.consume_token(Token::RParen)?;
+                if !r.is_ok() {
+                    return Err(String::from("Unexpected end of input"));
+                }
+                // otherwise return x
                 return Ok(x);
-            }
-
+            },
+            // token character should just return Ok(c)
+            Token::Char(c) => {
+                return Ok(t);
+            },
             //take next token in atom should always match with LParen or number according to
             //grammar
             _ => {

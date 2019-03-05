@@ -4,27 +4,27 @@
  * thegrep - Tar Heel egrep
  *
  * Author(s): Sarah Bost, Shannon Goad
- * ONYEN(s): sbost99 SHANNON PUT YOUR ONYEN
+ * ONYEN(s): sbost99, sgoad13
  *
  * UNC Honor Pledge: I pledge I have received no unauthorized aid
  * on this assignment. I further pledge not to distribute my solution
  * to this code to anyone other than the course staff and partner.
  */
 
-//I copied and pasted this from the starter code in previous assignments
-extern crate structopt; 
+//copied and pasted this from the starter code in previous assignments
+extern crate structopt;
+use structopt::StructOpt;
 
 const QUIT_STRING: &str = "quit\n"; 
 const EXIT_OK: i32 = 0; 
 const EXIT_ERR: i32 = 1; 
 
 use std::io; 
-use structopt::StructOpt; 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "thegrepc", about = "Tar Heel Egrep")]
 
 //potentially need to account for the '-' before the flags?
-struct Options {
+struct Opt {
     #[structopt(short = "h", long = "help")]
     help: bool, 
     #[structopt(short = "p", long = "parse")]
@@ -35,22 +35,22 @@ struct Options {
     version: bool,
 }
 
-//need to make tokenizer/Parser but importing based on main from last assignment
+// importing tokenizer and parser to use in main
 pub mod tokenizer; 
 use self::tokenizer::Tokenizer; 
 pub mod parser; 
 use self::parser::Parser; 
 
 fn main() {
-    let options = Options::from_args(); 
+    let opt = Opt::from_args(); 
     loop {
-        eval(&read(), &options); 
+        eval(&read(), &opt); 
     }
 }
 
 
 //calls function based on flags 
-fn eval(input: &str, options: &Options) {
+fn eval(input: &str, options: &Opt) {
     if options.help {
         eval_help(input); 
     } 

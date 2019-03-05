@@ -5,3 +5,4 @@ authors = ["Someone Awesome <you@cs.unc.edu>"]
 edition = "2018"
 
 [dependencies]
+structopt = "0.2"
