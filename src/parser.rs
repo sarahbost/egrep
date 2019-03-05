@@ -1,0 +1,417 @@
+use super::tokenizer::{Token, Tokenizer};
+use std::iter::Peekable;
+
+/**
+ * thbc - Tar Heel Egrep - Parser
+ *
+ * Author: Sarah Bost
+ * ONYEN: sbost99
+ *
+ * UNC Honor Pledge: I pledge I have received no unauthorized aid
+ * on this assignment. I further pledge not to distribute my solution
+ * to this code to anyone other than the course staff.
+ */
+
+/* == Begin Syntax Tree Elements == */
+#[derive(Debug, PartialEq)]
+pub enum AST {
+    Alternation {
+        left: Box<AST>,
+        right: Box<AST>,
+    },
+    Catenation(Box<AST>, Box<AST>), 
+    Closure(Box<AST>), 
+    Char(char),
+    AnyChar,
+}
+
+/* Helper factory functions for building AST*/
+pub fn build_alternation(left: AST, right: AST) -> AST {
+    AST::Alternation {
+        left: Box::new(left),
+        right: Box::new(right),
+    }
+}
+
+pub fn build_char(value: char) -> AST {
+    AST::Char(value)
+}
+
+pub fn build_catenation(first: AST, second: AST) -> AST {
+    AST::Catenation(Box::new(first), Box::new(second))
+}
+
+pub fn build_closure(closure: AST) -> AST {
+    AST::Closure(Box::new(closure))
+}
+
+pub fn build_anychar() -> AST {
+    AST::AnyChar
+}
+
+
+/* == End Syntax Tree Elements == */
+
+pub struct Parser<'tokens> {
+    tokens: Peekable<Tokenizer<'tokens>>,
+}
+
+impl<'tokens> Parser<'tokens> {
+    pub fn parse(tokenizer: Tokenizer<'tokens>) -> Result<AST, String> {
+        let mut parser = Parser {
+            tokens: tokenizer.peekable(),
+        };
+
+        //calls parser expression returns Result<Expr, String>
+        let res = parser.ast();
+
+        //If there are still tokens left in the parser, return an error
+        if let Some(c) = parser.tokens.peek() {
+            return Err(format!("Expected end of input, found {:?}", c));
+        } else {
+            //returns type Result<Expr,String> of parsed syntax stree or an error
+            return res;
+        }
+    }
+}
+
+
+/**
+ * Internal-only parser methods to process the grammar via recursive descent.
+ */
+impl<'tokens> Parser<'tokens> {
+    fn ast(&mut self) -> Result<AST, String> {
+        match self.take_next_token()? {
+        //match tokens call functions
+        
+        }
+        
+        
+        
+        x
+    }
+
+    //Atom -> lparen Expr rparen | number according to grammar
+    fn atom(&mut self) -> Result<Expr, String> {
+        //Take next toke if there is one (and doesn't throw error)
+        match self.take_next_token()? {
+            //if the token is a number, make a new Expr::Num and return
+            //Calls num helper function that makes and returns an Expr
+            Token::Number(value) => {
+                let y: Expr = num(value);
+                return Ok(y);
+            }
+
+            //If token is an LParen, input should be lparen Expr RParen
+            //Consume tokens in this order and return the Expr
+            Token::LParen => {
+                let x = self.expr()?;
+
+                self.consume_token(Token::RParen)?;
+
+                return Ok(x);
+            }
+
+            //take next token in atom should always match with LParen or number according to
+            //grammar
+            _ => {
+                return Err("unexpected input".to_string());
+            }
+        }
+    }
+
+    // Level 1:
+    // MaybeMulDiv  -> Atom MulDivOp?
+    fn maybe_mul_div(&mut self) -> Result<Expr, String> {
+        //calls atom acording to grammar and gets Expr if valid
+        let mut x = self.atom()?;
+
+        //check if next token is an operator and call mul_div_op if it is according to grammer
+        //x is an Expr of the binop so pass as parameter to mul div op so it can create a binop
+        if let Some(c) = self.peek_operator() {
+            match c {
+                '*' => x = self.mul_div_op(x)?,
+                '/' => x = self.mul_div_op(x)?,
+                _ => return Ok(x),
+            }
+        }
+
+        Ok(x)
+    }
+
+    // MulDivOp     -> ('*'|'/') Atom
+    /**
+     * The lhs: Expr is passed in so that the syntax tree can grow "down" the lhs.
+     */
+    fn mul_div_op(&mut self, lhs: Expr) -> Result<Expr, String> {
+        //consume the operator token
+        let y = self.take_operator().unwrap();
+
+        //get the next atom according to grammar
+        let x = self.atom()?;
+
+        //create new binop with the argument as the lhs, operator as the op and the returned atom
+        //as the expr
+        let mut b = binop(lhs, y, x);
+
+        //if there an operator is the next token, pass the new binop as the lhs and recursively
+        //call
+        if let Some(c) = self.peek_operator() {
+            b = self.mul_div_op(b)?;
+        }
+
+        Ok(b)
+    }
+
+    // Level 2: Does not add new rules, rather modifies Level 1's!
+
+    // Level 3:
+    // MaybeAddSub -> MaybeMulDiv AddSubOp?
+    fn maybe_add_sub(&mut self) -> Result<Expr, String> {
+        //calls maybe mul div according to grammar
+        let mut x = self.maybe_mul_div()?;
+
+        //if the next token is an + or -, pass the Expr to the add sub op as its LHS to make a new
+        //binop
+        if let Some(c) = self.peek_operator() {
+            match c {
+                '+' => x = self.add_sub_op(x)?,
+                '-' => x = self.add_sub_op(x)?,
+                //if the operator isn't a + or -, just return the expr
+                _ => {
+                    return Ok(x);
+                }
+            }
+        }
+        Ok(x)
+    }
+
+    fn add_sub_op(&mut self, lhs: Expr) -> Result<Expr, String> {
+        //consume operator
+        let x = self.take_operator().unwrap();
+
+        //call maybe mul div according to grammar and get expr
+        let y = self.maybe_mul_div()?;
+
+        //create new binop with the expr returned and the operator
+        let mut b = binop(lhs, x, y);
+
+        //if the next token is an operator, recursively call this function and pass the new binop
+        //as the Expr for the lhs
+        if let Some(c) = self.peek_operator() {
+            b = self.add_sub_op(b)?;
+        }
+        Ok(b)
+    }
+
+    // AddSubOp    -> ('+'|'-') MaybeMulDiv AddSubOp?
+}
+
+#[cfg(test)]
+mod private_api {
+    use super::*;
+
+    mod lvl0 {
+        use super::*;
+
+        #[test]
+        fn atom_ok() {
+            assert_eq!(Parser::from("1").atom().unwrap(), num(1.0));
+            assert_eq!(Parser::from("(1)").atom().unwrap(), num(1.0));
+            assert_eq!(Parser::from("((1))").atom().unwrap(), num(1.0));
+        }
+
+        #[test]
+        fn atom_err_empty_parens() {
+            assert_eq!(
+                Parser::from("()").atom(),
+                Err(String::from("Unexpected token: RParen")),
+            );
+        }
+
+        #[test]
+        fn atom_err_not_an_atom() {
+            assert_eq!(
+                Parser::from("+").atom(),
+                Err(String::from("Unexpected token: Operator('+')")),
+            );
+        }
+
+        #[test]
+        fn atom_err_incomplete() {
+            assert_eq!(
+                Parser::from("(").atom(),
+                Err(String::from("Unexpected end of input"))
+            );
+            assert_eq!(
+                Parser::from("(1").atom(),
+                Err(String::from("Unexpected end of input"))
+            );
+        }
+    }
+
+    mod lvl1 {
+        use super::*;
+
+        #[test]
+        fn maybe_mul_div_atom() {
+            assert_eq!(Parser::from("1").maybe_mul_div().unwrap(), num(1.0));
+        }
+
+        #[test]
+        fn maybe_mul_div() {
+            assert_eq!(
+                Parser::from("1*2").maybe_mul_div().unwrap(),
+                binop(num(1.0), '*', num(2.0))
+            );
+            assert_eq!(
+                Parser::from("1/2").maybe_mul_div().unwrap(),
+                binop(num(1.0), '/', num(2.0))
+            );
+        }
+
+        #[test]
+        fn mul_div_op() {
+            assert_eq!(
+                Parser::from("*2").mul_div_op(num(1.0)).unwrap(),
+                binop(num(1.0), '*', num(2.0))
+            );
+            assert_eq!(
+                Parser::from("/2").mul_div_op(num(1.0)).unwrap(),
+                binop(num(1.0), '/', num(2.0))
+            );
+        }
+    }
+
+    mod lvl2 {
+        use super::*;
+
+        #[test]
+        fn maybe_mul_div_multiplication() {
+            assert_eq!(
+                Parser::from("1/2/3").maybe_mul_div().unwrap(),
+                binop(binop(num(1.0), '/', num(2.0)), '/', num(3.0))
+            );
+        }
+
+        #[test]
+        fn mul_div_op_multiplication() {
+            assert_eq!(
+                Parser::from("*2*3").mul_div_op(num(1.0)).unwrap(),
+                binop(binop(num(1.0), '*', num(2.0)), '*', num(3.0))
+            );
+            assert_eq!(
+                Parser::from("*3")
+                    .mul_div_op(binop(num(1.0), '*', num(2.0)))
+                    .unwrap(),
+                binop(binop(num(1.0), '*', num(2.0)), '*', num(3.0))
+            );
+        }
+
+        mod lvl3 {
+            use super::*;
+
+            #[test]
+            fn maybe_add_sub_addition() {
+                assert_eq!(
+                    Parser::from("1+2+3").maybe_add_sub().unwrap(),
+                    binop(binop(num(1.0), '+', num(2.0)), '+', num(3.0))
+                );
+            }
+
+            #[test]
+            fn mul_add_sub_subtraction() {
+                assert_eq!(
+                    Parser::from("-2-3").mul_div_op(num(1.0)).unwrap(),
+                    binop(binop(num(1.0), '-', num(2.0)), '-', num(3.0))
+                );
+                assert_eq!(
+                    Parser::from("-3")
+                        .mul_div_op(binop(num(1.0), '-', num(2.0)))
+                        .unwrap(),
+                    binop(binop(num(1.0), '-', num(2.0)), '-', num(3.0))
+                );
+            }
+        }
+
+    }
+}
+
+/* Parser's Helper Methods to improve ergonomics of parsing */
+impl<'tokens> Parser<'tokens> {
+    /**
+     * Static helper method used in unit tests to establish a
+     * parser given a string.
+     */
+    fn from(input: &'tokens str) -> Parser<'tokens> {
+        Parser {
+            tokens: Tokenizer::new(input).peekable(),
+        }
+    }
+
+    /**
+     * When you expect another token and want to take it directly
+     * or raise an error that you expected another token here but
+     * found the end of input. Example usage:
+     *
+     * let t: Token = self.take_next_token()?;
+     *
+     * Notice the ? usage will automatically propagate the Err or
+     * unwrap the value of Ok.
+     */
+    fn take_next_token(&mut self) -> Result<Token, String> {
+        if let Some(token) = self.tokens.next() {
+            Ok(token)
+        } else {
+            Err(String::from("Unexpected end of input"))
+        }
+    }
+
+    /**
+     * When you want to peek for an operator this helper method
+     * will optionally return the operator's character value to you
+     * or it will return None.
+     */
+    fn peek_operator(&mut self) -> Option<char> {
+        if let Some(Token::Operator(op)) = self.tokens.peek() {
+            Some(*op)
+        } else {
+            None
+        }
+    }
+
+    /**
+     * When you know you want to take an Operator token, this helper
+     * method will optionally take it and return it or result in an
+     * Err. Example usage:
+     *
+     * let op: Token = self.take_operator()?;
+     */
+    fn take_operator(&mut self) -> Result<char, String> {
+        let token = self.tokens.next();
+        if let Some(Token::Operator(op)) = token {
+            Ok(op)
+        } else {
+            Err(format!("Expected operator, found {:?}", token))
+        }
+    }
+
+    /**
+     * When there's a specific token you expect next in the grammar
+     * use this helper method. It will raise an Err if there is no
+     * next token or if it is not _exactly_ the Token you expected
+     * next. If it is the token you expected, it will return Ok(Token).
+     */
+    fn consume_token(&mut self, expected: Token) -> Result<Token, String> {
+        if let Some(next) = self.tokens.next() {
+            if next != expected {
+                Err(format!("Expected: {:?} - Found {:?}", expected, next))
+            } else {
+                Ok(next)
+            }
+        } else {
+            Err(String::from("Unexpected end of input"))
+        }
+    }
+}
+
