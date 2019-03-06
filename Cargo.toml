@@ -1,7 +1,8 @@
 [package]
 name = "thegrep"
 version = "1.0.0"
-authors = ["Someone Awesome <you@cs.unc.edu>"]
+authors = ["Shannon Goad and Sarah Bost sbost99@cs.unc.edu"]
 edition = "2018"
 
 [dependencies]
+structopt = "0.2"

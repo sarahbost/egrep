@@ -82,42 +82,20 @@ impl<'tokens> Parser<'tokens> {
 impl<'tokens> Parser<'tokens> {
     fn ast(&mut self) -> Result<AST, String> {
         match self.take_next_token()? {
-        //match tokens call functions
+            LParen => 
         
         }
         
         
         
-        x
     }
 
-    //Atom -> lparen Expr rparen | number according to grammar
-    fn atom(&mut self) -> Result<Expr, String> {
-        //Take next toke if there is one (and doesn't throw error)
-        match self.take_next_token()? {
-            //if the token is a number, make a new Expr::Num and return
-            //Calls num helper function that makes and returns an Expr
-            Token::Number(value) => {
-                let y: Expr = num(value);
-                return Ok(y);
-            }
+    fn regex(&mut self) -> Result<AST, String> {
+        
+        catenation; 
+        if let Some(c) = self.expected
 
-            //If token is an LParen, input should be lparen Expr RParen
-            //Consume tokens in this order and return the Expr
-            Token::LParen => {
-                let x = self.expr()?;
 
-                self.consume_token(Token::RParen)?;
-
-                return Ok(x);
-            }
-
-            //take next token in atom should always match with LParen or number according to
-            //grammar
-            _ => {
-                return Err("unexpected input".to_string());
-            }
-        }
     }
 
     // Level 1:
@@ -204,135 +182,8 @@ impl<'tokens> Parser<'tokens> {
         Ok(b)
     }
 
-    // AddSubOp    -> ('+'|'-') MaybeMulDiv AddSubOp?
 }
 
-#[cfg(test)]
-mod private_api {
-    use super::*;
-
-    mod lvl0 {
-        use super::*;
-
-        #[test]
-        fn atom_ok() {
-            assert_eq!(Parser::from("1").atom().unwrap(), num(1.0));
-            assert_eq!(Parser::from("(1)").atom().unwrap(), num(1.0));
-            assert_eq!(Parser::from("((1))").atom().unwrap(), num(1.0));
-        }
-
-        #[test]
-        fn atom_err_empty_parens() {
-            assert_eq!(
-                Parser::from("()").atom(),
-                Err(String::from("Unexpected token: RParen")),
-            );
-        }
-
-        #[test]
-        fn atom_err_not_an_atom() {
-            assert_eq!(
-                Parser::from("+").atom(),
-                Err(String::from("Unexpected token: Operator('+')")),
-            );
-        }
-
-        #[test]
-        fn atom_err_incomplete() {
-            assert_eq!(
-                Parser::from("(").atom(),
-                Err(String::from("Unexpected end of input"))
-            );
-            assert_eq!(
-                Parser::from("(1").atom(),
-                Err(String::from("Unexpected end of input"))
-            );
-        }
-    }
-
-    mod lvl1 {
-        use super::*;
-
-        #[test]
-        fn maybe_mul_div_atom() {
-            assert_eq!(Parser::from("1").maybe_mul_div().unwrap(), num(1.0));
-        }
-
-        #[test]
-        fn maybe_mul_div() {
-            assert_eq!(
-                Parser::from("1*2").maybe_mul_div().unwrap(),
-                binop(num(1.0), '*', num(2.0))
-            );
-            assert_eq!(
-                Parser::from("1/2").maybe_mul_div().unwrap(),
-                binop(num(1.0), '/', num(2.0))
-            );
-        }
-
-        #[test]
-        fn mul_div_op() {
-            assert_eq!(
-                Parser::from("*2").mul_div_op(num(1.0)).unwrap(),
-                binop(num(1.0), '*', num(2.0))
-            );
-            assert_eq!(
-                Parser::from("/2").mul_div_op(num(1.0)).unwrap(),
-                binop(num(1.0), '/', num(2.0))
-            );
-        }
-    }
-
-    mod lvl2 {
-        use super::*;
-
-        #[test]
-        fn maybe_mul_div_multiplication() {
-            assert_eq!(
-                Parser::from("1/2/3").maybe_mul_div().unwrap(),
-                binop(binop(num(1.0), '/', num(2.0)), '/', num(3.0))
-            );
-        }
-
-        #[test]
-        fn mul_div_op_multiplication() {
-            assert_eq!(
-                Parser::from("*2*3").mul_div_op(num(1.0)).unwrap(),
-                binop(binop(num(1.0), '*', num(2.0)), '*', num(3.0))
-            );
-            assert_eq!(
-                Parser::from("*3")
-                    .mul_div_op(binop(num(1.0), '*', num(2.0)))
-                    .unwrap(),
-                binop(binop(num(1.0), '*', num(2.0)), '*', num(3.0))
-            );
-        }
-
-        mod lvl3 {
-            use super::*;
-
-            #[test]
-            fn maybe_add_sub_addition() {
-                assert_eq!(
-                    Parser::from("1+2+3").maybe_add_sub().unwrap(),
-                    binop(binop(num(1.0), '+', num(2.0)), '+', num(3.0))
-                );
-            }
-
-            #[test]
-            fn mul_add_sub_subtraction() {
-                assert_eq!(
-                    Parser::from("-2-3").mul_div_op(num(1.0)).unwrap(),
-                    binop(binop(num(1.0), '-', num(2.0)), '-', num(3.0))
-                );
-                assert_eq!(
-                    Parser::from("-3")
-                        .mul_div_op(binop(num(1.0), '-', num(2.0)))
-                        .unwrap(),
-                    binop(binop(num(1.0), '-', num(2.0)), '-', num(3.0))
-                );
-            }
-        }
 
     }
 }
