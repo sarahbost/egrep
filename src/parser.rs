@@ -91,7 +91,7 @@ impl<'tokens> Parser<'tokens> {
         match t {
             //if the token is anychar, make a new AST and return
             Token::AnyChar => {
-                return Ok(t);
+                return Ok(build_anychar());
             },
             //If token is an LParen, input should follow lparen AST RParen
             //Consume tokens in this order and return the AST
@@ -108,7 +108,7 @@ impl<'tokens> Parser<'tokens> {
             },
             // token character should just return Ok(c)
             Token::Char(c) => {
-                return Ok(t);
+                return Ok(build_char(c));
             },
             //take next token in atom should always match with LParen or number according to
             //grammar

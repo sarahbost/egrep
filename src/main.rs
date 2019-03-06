@@ -66,18 +66,16 @@ fn eval(input: &str, options: &Opt) {
     if options.version {
         eval_version(input); 
     }
-
-    eval_target(input); 
 }
 
 
 fn eval_parser(input: &str) {
-    println!("prints type of regex");
     match Parser::parse(Tokenizer::new(input)) {
         Ok(statement) => {
             println!("{:?}", statement); 
         }
         //need to initalize msg?
+        // no need to initialize msg, this msg is what is returned if parser throws an error
         Err(msg) => eprintln!("thegrep: {}", msg), 
     }
     print!("\n"); 
@@ -92,16 +90,23 @@ fn eval_tokens(input: &str) {
 }
 
 fn eval_help(input: &str) {
-    //TODO
-    //
+    println!("thegrep 1.0.0");
+    println!("Tar Heel egrep");
+    println!("/n");
+    println!("USAGE:");
+    println!("/t thegrep {}", input);
+    println!("/n");
+    println!("FLAGS:");
+    println!("/t -h, --help /t Prints help information");
+    println!("/t -p, --parse /t Show parsed AST");
+    println!("/t -t, --tokens /t Show Tokens");
+    println!("/t -V, --version /t Prints version information");
+    println!("ARGS:");
+    println!(" /t uh fill in pattern here /t Regular Expression Pattern");
 }
 
 fn eval_version(input: &str) {
     //TODO
-}
-
-fn eval_target(input: &str) {
-    //target was to_dc in thbc, need to figure out what to do here 
 }
 
 
