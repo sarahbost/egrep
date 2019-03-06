@@ -106,7 +106,7 @@ fn eval_help(input: &str) {
 }
 
 fn eval_version(input: &str) {
-    //TODO
+    println!("thegrep version 1.0.0");
 }
 
 
