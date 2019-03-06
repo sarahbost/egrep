@@ -2,10 +2,10 @@ use std::iter::Peekable;
 use std::str::Chars;
 
 /**
- * thbc - Tar Heel Basic Calculator
+ * thegrep - Tar Heel egrep
  *
- * Author: <Sarah Bost> and Shannon Goad
- * ONYEN: <sbost99> SHANNON PUT YOUR ONYEN
+ * Author: Sarah Bost, Shannon Goad
+ * ONYEN: sbost99, sgoad13
  *
  * UNC Honor Pledge: I pledge I have received no unauthorized aid
  * on this assignment. I further pledge not to distribute my solution
