@@ -42,7 +42,9 @@ pub mod parser;
 use self::parser::Parser; 
 
 fn main() {
-    let opt = Opt::from_args(); 
+    let opt = Opt::from_args();
+//    println!("{:?}", opt); 
+    
     loop {
         eval(&read(), &opt); 
     }
@@ -51,9 +53,6 @@ fn main() {
 
 //calls function based on flags 
 fn eval(input: &str, options: &Opt) {
-    if options.help {
-        eval_help(input); 
-    } 
 
     if options.parse {
         eval_parser(input); 
@@ -63,9 +62,12 @@ fn eval(input: &str, options: &Opt) {
         eval_tokens(input); 
     }
 
-    if options.version {
-        eval_version(input); 
+    if options.help {
+        eval_tokens(input); 
     }
+
+
+
 }
 
 

@@ -20,7 +20,9 @@ pub enum AST {
         right: Box<AST>,
     },
     Catenation(Box<AST>, Box<AST>), 
-    Closure(Box<AST>), 
+    Closure(Box<AST>),
+    AnyChar,
+    Char(char),
 }
 
 /* Helper factory functions for building AST*/
@@ -46,7 +48,6 @@ pub fn build_closure(closure: AST) -> AST {
 pub fn build_anychar() -> AST {
     AST::AnyChar
 }
-
 
 /* == End Syntax Tree Elements == */
 
@@ -80,9 +81,14 @@ impl<'tokens> Parser<'tokens> {
 impl<'tokens> Parser<'tokens> {
     fn ast(&mut self) -> Result<AST, String> {
 
-       return self.atom(); 
-    }
+       let ast =  self.atom()?;
 
+       if let Some(c) = self.peek_kleene_star() {
+          return Ok(self.closure(ast)?); 
+        }
+
+       Ok(ast)
+    }
     //Atom -> lparen RegExpr rparen | AnyChar | Char  according to grammar
     fn atom(&mut self) -> Result<AST, String> {
         //Take next toke if there is one (and doesn't throw error)
@@ -98,7 +104,7 @@ impl<'tokens> Parser<'tokens> {
                 // x is next ast or error
                 let x = self.ast()?;
                 //r should be rparen
-                let r = self.consume_token(Token::RParen)?;
+                let r = self.consume_token(Token::RParen);
                 if !r.is_ok() {
                     return Err(String::from("Unexpected end of input"));
                 }
@@ -114,6 +120,42 @@ impl<'tokens> Parser<'tokens> {
             _ => {
                 return Err("unexpected input".to_string());
             }
+        }
+    }
+
+    fn closure(&mut self, atom: AST) -> Result<AST, String> {
+        let kleene_star = self.take_next_token().unwrap(); 
+        Ok(build_closure(atom)) 
+    }
+
+}
+impl<'tokens> Parser<'tokens> {
+
+    fn take_next_token(&mut self) -> Result<Token, String> {
+        if let Some(token) = self.tokens.next() {
+            Ok(token)
+        } else {
+            Err(String::from("Unexpected end of input"))
+        }
+    }
+
+     fn consume_token(&mut self, expected: Token) -> Result<Token, String> {
+        if let Some(next) = self.tokens.next() {
+            if next != expected {
+                Err(format!("Expected: {:?} - Found {:?}", expected, next))
+            } else {
+                Ok(next)
+            }
+        } else {
+            Err(String::from("Unexpected end of input"))
+        }
+    }
+
+     fn peek_kleene_star(&mut self) -> Option<char> {
+        if let Some(Token::KleeneStar) = self.tokens.peek() {
+            Some('*')
+        } else {
+            None
         }
     }
 }

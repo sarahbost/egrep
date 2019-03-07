@@ -5,4 +5,4 @@ authors = ["Shannon Goad and Sarah Bost sbost99@cs.unc.edu and sgoad13@live.unc.
 edition = "2018"
 
 [dependencies]
-structopt = "0.2"
+structopt = {version = "0.2"}
