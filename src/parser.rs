@@ -62,7 +62,7 @@ impl<'tokens> Parser<'tokens> {
         };
 
         //calls parser expression returns Result<Expr, String>
-        let res = parser.ast();
+        let res = parser.regexpr();
 
         //If there are still tokens left in the parser, return an error
         if let Some(c) = parser.tokens.peek() {
@@ -79,15 +79,9 @@ impl<'tokens> Parser<'tokens> {
  * Internal-only parser methods to process the grammar via recursive descent.
  */
 impl<'tokens> Parser<'tokens> {
-    fn ast(&mut self) -> Result<AST, String> {
-
-       let ast =  self.atom()?;
-
-       if let Some(c) = self.peek_kleene_star() {
-          return Ok(self.closure(ast)?); 
-        }
-
-       Ok(ast)
+    fn regexpr(&mut self) -> Result<AST, String> {
+       let regex =  self.maybe_regex()?;
+       Ok(regex)
     }
     //Atom -> lparen RegExpr rparen | AnyChar | Char  according to grammar
     fn atom(&mut self) -> Result<AST, String> {
@@ -102,7 +96,7 @@ impl<'tokens> Parser<'tokens> {
             //Consume tokens in this order and return the AST
             Token::LParen => {
                 // x is next ast or error
-                let x = self.ast()?;
+                let x = self.regexpr()?;
                 //r should be rparen
                 let r = self.consume_token(Token::RParen);
                 if !r.is_ok() {
@@ -123,18 +117,44 @@ impl<'tokens> Parser<'tokens> {
         }
     }
 
-    fn closure(&mut self, atom: AST) -> Result<AST, String> {
-        let kleene_star = self.take_next_token().unwrap(); 
-        Ok(build_closure(atom)) 
+    fn closure(&mut self) -> Result<AST, String> {
+        let first_term = self.atom()?;
+        if self.peek_kleene_star().is_some() {
+            let kleene_star = self.take_next_token();
+            return Ok(build_closure(first_term));
+        }   
+        Ok(build_closure(first_term))
+    }
+
+    fn cat(&mut self) -> Result<AST, String> {
+        let first_term = self.closure()?;
+        let second_term = self.maybe_cat();
+        if second_term.is_ok() {
+            return Ok(build_catenation(first_term, second_term.unwrap()));
+        }
+        return Ok(first_term);
     }
     
     fn maybe_cat(&mut self) -> Result<AST, String> {
-        let first_term = self.ast()?;
-        if self.peek_union_bar().is_some() {
-            let union_bar = self.take_next_token().unwrap();
-            return Ok(build_catenation(first_term, self.ast()));
+        if self.tokens.peek().is_some() {
+
+            match self.tokens.peek().unwrap() {
+                Token::LParen | Token::AnyChar  => Ok(self.cat()),
+                Token::Char(c) => Ok(self.cat()),
+                _ => Err(String::from("this is an error we are checking"))
+            };
         }
-        Err("unexpected error building catenation")
+        Err(String::from("aksjdflkasjdflkas"))
+    }
+
+    fn maybe_regex(&mut self) -> Result<AST, String> {
+        let lhs = self.cat()?;
+        if self.peek_union_bar().is_some() {
+            let union_bar = self.take_next_token();
+            let rhs = self.cat()?;
+            return Ok(build_alternation(lhs, rhs));
+        }
+        return Ok(lhs);
     }
 
 }
