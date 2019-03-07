@@ -127,6 +127,15 @@ impl<'tokens> Parser<'tokens> {
         let kleene_star = self.take_next_token().unwrap(); 
         Ok(build_closure(atom)) 
     }
+    
+    fn maybe_cat(&mut self) -> Result<AST, String> {
+        let first_term = self.ast()?;
+        if self.peek_union_bar().is_some() {
+            let union_bar = self.take_next_token().unwrap();
+            return Ok(build_catenation(first_term, self.ast()));
+        }
+        Err("unexpected error building catenation")
+    }
 
 }
 impl<'tokens> Parser<'tokens> {
@@ -154,6 +163,14 @@ impl<'tokens> Parser<'tokens> {
      fn peek_kleene_star(&mut self) -> Option<char> {
         if let Some(Token::KleeneStar) = self.tokens.peek() {
             Some('*')
+        } else {
+            None
+        }
+    }
+
+     fn peek_union_bar(&mut self) -> Option<char> {
+        if let Some(Token::UnionBar) = self.tokens.peek() {
+            Some('|')
         } else {
             None
         }
