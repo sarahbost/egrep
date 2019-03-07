@@ -25,14 +25,10 @@ use std::io;
 
 //potentially need to account for the '-' before the flags?
 struct Opt {
-    #[structopt(short = "h", long = "help")]
-    help: bool, 
     #[structopt(short = "p", long = "parse")]
     parse: bool,
      #[structopt(short = "t", long = "tokens")]
     tokens: bool,
-    #[structopt(short = "V", long = "version")]
-    version: bool,
 }
 
 // importing tokenizer and parser to use in main
@@ -62,9 +58,6 @@ fn eval(input: &str, options: &Opt) {
         eval_tokens(input); 
     }
 
-    if options.help {
-        eval_tokens(input); 
-    }
 
 
 
