@@ -15,10 +15,10 @@ use std::iter::Peekable;
 /* == Begin Syntax Tree Elements == */
 #[derive(Debug, PartialEq)]
 pub enum AST {
-    Alternation {
-        left: Box<AST>,
-        right: Box<AST>,
-    },
+    Alternation (
+        Box<AST>,
+        Box<AST>,
+    ),
     Catenation(Box<AST>, Box<AST>), 
     Closure(Box<AST>),
     AnyChar,
@@ -27,10 +27,10 @@ pub enum AST {
 
 /* Helper factory functions for building AST*/
 pub fn build_alternation(left: AST, right: AST) -> AST {
-    AST::Alternation {
-        left: Box::new(left),
-        right: Box::new(right),
-    }
+    AST::Alternation (
+         Box::new(left),
+         Box::new(right),
+    )
 }
 
 pub fn build_char(value: char) -> AST {
@@ -123,7 +123,7 @@ impl<'tokens> Parser<'tokens> {
             let kleene_star = self.take_next_token();
             return Ok(build_closure(first_term));
         }   
-        Ok(build_closure(first_term))
+        Ok(first_term)
     }
 
     fn cat(&mut self) -> Result<AST, String> {
@@ -136,22 +136,18 @@ impl<'tokens> Parser<'tokens> {
     }
     
     fn maybe_cat(&mut self) -> Result<AST, String> {
-        if self.tokens.peek().is_some() {
-
-            match self.tokens.peek().unwrap() {
-                Token::LParen | Token::AnyChar  => Ok(self.cat()),
-                Token::Char(c) => Ok(self.cat()),
+            match self.tokens.peek() {
+                Some(Token::LParen) | Some(Token::AnyChar)  => self.cat(),
+                Some(Token::Char(c)) => self.cat(),
                 _ => Err(String::from("this is an error we are checking"))
-            };
-        }
-        Err(String::from("aksjdflkasjdflkas"))
+            }
     }
 
     fn maybe_regex(&mut self) -> Result<AST, String> {
         let lhs = self.cat()?;
         if self.peek_union_bar().is_some() {
             let union_bar = self.take_next_token();
-            let rhs = self.cat()?;
+            let rhs = self.regexpr()?;
             return Ok(build_alternation(lhs, rhs));
         }
         return Ok(lhs);
