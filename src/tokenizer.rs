@@ -124,3 +124,69 @@ impl<'str> Tokenizer<'str> {
     }
 
         }
+
+
+
+/**
+ * Unit Tests for the `next` method.
+ */
+#[cfg(test)]
+mod iterator {
+    use super::*;
+
+    #[test]
+    fn empty() {
+        let mut tokens = Tokenizer::new("");
+        assert_eq!(tokens.next(), None);
+        assert_eq!(tokens.next(), None);
+    }
+
+    #[test]
+    fn parenthesis() {
+        let mut tokens = Tokenizer::new("()");
+        assert_eq!(tokens.next(), Some(Token::LParen));
+        assert_eq!(tokens.next(), Some(Token::RParen));
+    }
+
+    #[test]
+    fn union() {
+        let mut tokens = Tokenizer::new("|");
+        assert_eq!(tokens.next(), Some(Token::UnionBar));
+        assert_eq!(tokens.next(), None);
+    }
+
+    #[test]
+    fn kleene() {
+        let mut tokens = Tokenizer::new("*");
+        assert_eq!(tokens.next(), Some(Token::KleeneStar));
+        assert_eq!(tokens.next(), None);
+    }
+
+    #[test]
+    fn anychar() {
+        let mut tokens = Tokenizer::new(".");
+        assert_eq!(tokens.next(), Some(Token::AnyChar));
+        assert_eq!(tokens.next(), None);
+    }
+
+    #[test] 
+    fn char() {
+        let mut tokens = Tokenizer::new("a"); 
+        assert_eq!(tokens.next(), Some(Token::Char('a'))); 
+        assert_eq!(tokens.next(), None); 
+    }
+
+    //checks each kind of token next can generate
+    #[test]
+    fn alltokens() {
+        let mut tokens = Tokenizer::new("a | * ( ) .");
+        assert_eq!(tokens.next(), Some(Token::Char('a')));
+        assert_eq!(tokens.next(), Some(Token::UnionBar));
+        assert_eq!(tokens.next(), Some(Token::KleeneStar));
+        assert_eq!(tokens.next(), Some(Token::LParen));
+        assert_eq!(tokens.next(), Some(Token::RParen));
+        assert_eq!(tokens.next(), Some(Token::AnyChar));
+        assert_eq!(tokens.next(), None); 
+    }
+
+}

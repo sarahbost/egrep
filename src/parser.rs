@@ -1,4 +1,4 @@
- use super::tokenizer::{Token, Tokenizer};
+use super::tokenizer::{Token, Tokenizer};
 use std::iter::Peekable;
 
 /**
@@ -15,11 +15,8 @@ use std::iter::Peekable;
 /* == Begin Syntax Tree Elements == */
 #[derive(Debug, PartialEq)]
 pub enum AST {
-    Alternation (
-        Box<AST>,
-        Box<AST>,
-    ),
-    Catenation(Box<AST>, Box<AST>), 
+    Alternation(Box<AST>, Box<AST>),
+    Catenation(Box<AST>, Box<AST>),
     Closure(Box<AST>),
     AnyChar,
     Char(char),
@@ -27,10 +24,7 @@ pub enum AST {
 
 /* Helper factory functions for building AST*/
 pub fn build_alternation(left: AST, right: AST) -> AST {
-    AST::Alternation (
-         Box::new(left),
-         Box::new(right),
-    )
+    AST::Alternation(Box::new(left), Box::new(right))
 }
 
 pub fn build_char(value: char) -> AST {
@@ -74,14 +68,13 @@ impl<'tokens> Parser<'tokens> {
     }
 }
 
-
 /**
  * Internal-only parser methods to process the grammar via recursive descent.
  */
 impl<'tokens> Parser<'tokens> {
     fn regexpr(&mut self) -> Result<AST, String> {
-       let regex =  self.maybe_regex()?;
-       Ok(regex)
+        let regex = self.maybe_regex()?;
+        Ok(regex)
     }
     //Atom -> lparen RegExpr rparen | AnyChar | Char  according to grammar
     fn atom(&mut self) -> Result<AST, String> {
@@ -91,7 +84,7 @@ impl<'tokens> Parser<'tokens> {
             //if the token is anychar, make a new AST and return
             Token::AnyChar => {
                 return Ok(build_anychar());
-            },
+            }
             //If token is an LParen, input should follow lparen AST RParen
             //Consume tokens in this order and return the AST
             Token::LParen => {
@@ -104,11 +97,11 @@ impl<'tokens> Parser<'tokens> {
                 }
                 // otherwise return x
                 return Ok(x);
-            },
+            }
             // token character should just return Ok(c)
             Token::Char(c) => {
                 return Ok(build_char(c));
-            },
+            }
             //take next token in atom should always match with LParen or number according to
             //grammar
             _ => {
@@ -122,7 +115,7 @@ impl<'tokens> Parser<'tokens> {
         if self.peek_kleene_star().is_some() {
             let kleene_star = self.take_next_token();
             return Ok(build_closure(first_term));
-        }   
+        }
         Ok(first_term)
     }
 
@@ -134,13 +127,13 @@ impl<'tokens> Parser<'tokens> {
         }
         return Ok(first_term);
     }
-    
+
     fn maybe_cat(&mut self) -> Result<AST, String> {
-            match self.tokens.peek() {
-                Some(Token::LParen) | Some(Token::AnyChar)  => self.cat(),
-                Some(Token::Char(c)) => self.cat(),
-                _ => Err(String::from("this is an error we are checking"))
-            }
+        match self.tokens.peek() {
+            Some(Token::LParen) | Some(Token::AnyChar) => self.cat(),
+            Some(Token::Char(c)) => self.cat(),
+            _ => Err(String::from("this is an error we are checking")),
+        }
     }
 
     fn maybe_regex(&mut self) -> Result<AST, String> {
@@ -152,10 +145,8 @@ impl<'tokens> Parser<'tokens> {
         }
         return Ok(lhs);
     }
-
 }
 impl<'tokens> Parser<'tokens> {
-
     fn take_next_token(&mut self) -> Result<Token, String> {
         if let Some(token) = self.tokens.next() {
             Ok(token)
@@ -164,7 +155,7 @@ impl<'tokens> Parser<'tokens> {
         }
     }
 
-     fn consume_token(&mut self, expected: Token) -> Result<Token, String> {
+    fn consume_token(&mut self, expected: Token) -> Result<Token, String> {
         if let Some(next) = self.tokens.next() {
             if next != expected {
                 Err(format!("Expected: {:?} - Found {:?}", expected, next))
@@ -176,7 +167,7 @@ impl<'tokens> Parser<'tokens> {
         }
     }
 
-     fn peek_kleene_star(&mut self) -> Option<char> {
+    fn peek_kleene_star(&mut self) -> Option<char> {
         if let Some(Token::KleeneStar) = self.tokens.peek() {
             Some('*')
         } else {
@@ -184,7 +175,7 @@ impl<'tokens> Parser<'tokens> {
         }
     }
 
-     fn peek_union_bar(&mut self) -> Option<char> {
+    fn peek_union_bar(&mut self) -> Option<char> {
         if let Some(Token::UnionBar) = self.tokens.peek() {
             Some('|')
         } else {
@@ -192,3 +183,7 @@ impl<'tokens> Parser<'tokens> {
         }
     }
 }
+
+
+
+
