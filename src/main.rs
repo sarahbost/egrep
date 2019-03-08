@@ -10,73 +10,65 @@
  * on this assignment. I further pledge not to distribute my solution
  * to this code to anyone other than the course staff and partner.
  */
-
-//copied and pasted this from the starter code in previous assignments
+//allows us to use structopt crate for flags, etc
 extern crate structopt;
 use structopt::StructOpt;
 
-const QUIT_STRING: &str = "quit\n"; 
-const EXIT_OK: i32 = 0; 
-const EXIT_ERR: i32 = 1; 
+const QUIT_STRING: &str = "quit\n";
+const EXIT_OK: i32 = 0;
+const EXIT_ERR: i32 = 1;
 
-use std::io; 
+use std::io;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "thegrepc", about = "Tar Heel Egrep")]
 
-//potentially need to account for the '-' before the flags?
+//setting up flags for parse and tokens
 struct Opt {
     #[structopt(short = "p", long = "parse")]
     parse: bool,
-     #[structopt(short = "t", long = "tokens")]
+    #[structopt(short = "t", long = "tokens")]
     tokens: bool,
 }
 
 // importing tokenizer and parser to use in main
-pub mod tokenizer; 
-use self::tokenizer::Tokenizer; 
-pub mod parser; 
-use self::parser::Parser; 
+pub mod tokenizer;
+use self::tokenizer::Tokenizer;
+pub mod parser;
+use self::parser::Parser;
 
 fn main() {
     let opt = Opt::from_args();
-//    println!("{:?}", opt); 
-    
     loop {
-        eval(&read(), &opt); 
+        eval(&read(), &opt);
     }
 }
 
-
-//calls function based on flags 
+//calls appropriate function based on flags
 fn eval(input: &str, options: &Opt) {
-
     if options.parse {
-        eval_parser(input); 
-    } 
-
-    if options.tokens {
-        eval_tokens(input); 
+        eval_parser(input);
     }
-
-
-
-
+    if options.tokens {
+        eval_tokens(input);
+    }
 }
 
-
+// evaluate here if parse flag detected
 fn eval_parser(input: &str) {
+    // create a new parser and cycle through input, return Ok for each parse chain and Err if
+    // parser detected an error
     match Parser::parse(Tokenizer::new(input)) {
         Ok(statement) => {
-            println!("{:?}", statement); 
+            println!("{:?}", statement);
         }
-        //need to initalize msg?
-        // no need to initialize msg, this msg is what is returned if parser throws an error
-        Err(msg) => eprintln!("thegrep: {}", msg), 
+        Err(msg) => eprintln!("thegrep: {}", msg),
     }
-    print!("\n"); 
+    print!("\n");
 }
 
+// evaluate here if tokens flag detected
 fn eval_tokens(input: &str) {
+    // create a new tokenizer and cycle through tokens
     let mut tokens = Tokenizer::new(input);
     while let Some(token) = tokens.next() {
         println!("{:?}", token);
@@ -84,29 +76,7 @@ fn eval_tokens(input: &str) {
     print!("\n");
 }
 
-fn eval_help(input: &str) {
-    println!("thegrep 1.0.0");
-    println!("Tar Heel egrep");
-    println!("/n");
-    println!("USAGE:");
-    println!("/t thegrep {}", input);
-    println!("/n");
-    println!("FLAGS:");
-    println!("/t -h, --help /t Prints help information");
-    println!("/t -p, --parse /t Show parsed AST");
-    println!("/t -t, --tokens /t Show Tokens");
-    println!("/t -V, --version /t Prints version information");
-    println!("ARGS:");
-    println!(" /t uh fill in pattern here /t Regular Expression Pattern");
-}
-
-fn eval_version(input: &str) {
-    println!("thegrep version 1.0.0");
-}
-
-
-//copied from thbc
-//
+// this reads in input from command line args
 fn read() -> String {
     match read_line() {
         Ok(line) => {
@@ -124,9 +94,7 @@ fn read() -> String {
     }
 }
 
-/**
- * Helper function to read a line of input from stdin.
- */
+// this reads a line of input
 fn read_line() -> Result<String, io::Error> {
     let mut input = String::new();
     io::stdin().read_line(&mut input)?;

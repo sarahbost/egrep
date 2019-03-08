@@ -33,6 +33,7 @@ pub struct Tokenizer<'str> {
     chars: Peekable<Chars<'str>>,
 }
 
+// this creates a new tokenizer from input given as argument, this is what is called in main.rs
 impl<'str> Tokenizer<'str> {
     pub fn new(input: &'str str) -> Tokenizer {
         Tokenizer {
@@ -53,17 +54,14 @@ impl<'str> Iterator for Tokenizer<'str> {
      * complete Some(Token) in the Tokenizer's input string or None at all.
      */
     fn next(&mut self) -> Option<Token> {
-        self.lex_whitespace();
         if let Some(c) = self.chars.peek() {
             Some(match c {
-                '|'=> self.lex_union_bar(),
+                '|' => self.lex_union_bar(),
                 '*' => self.lex_kleene_star(),
                 '.' => self.lex_any_char(),
                 '(' | ')' => self.lex_paren(),
-                //i think he said something about whitespace needing to be tokenized on piazza but
-                //ill double check later 
-  //              c.is_whitespace() => self.lex_whitespace(), 
                 _ => self.lex_char(),
+                // these match options should allow whitespace to be recognized as a char token
             })
         } else {
             None
@@ -76,15 +74,7 @@ impl<'str> Iterator for Tokenizer<'str> {
  * so these are internal methods only.
  */
 impl<'str> Tokenizer<'str> {
-    fn lex_whitespace(&mut self) {
-        while let Some(c) = self.chars.peek() {
-            match c {
-                ' ' | '\t' | '\n' => self.chars.next(),
-                _ => break,
-            };
-        }
-    }
-
+    // consumes char, which will be union bar, and returns a unionbar token
     fn lex_union_bar(&mut self) -> Token {
         let c = self.chars.next().unwrap();
         match c {
@@ -93,6 +83,7 @@ impl<'str> Tokenizer<'str> {
         }
     }
 
+    // consumes char, which will be kleene, and returns a kleenestar token
     fn lex_kleene_star(&mut self) -> Token {
         let c = self.chars.next().unwrap();
         match c {
@@ -101,6 +92,7 @@ impl<'str> Tokenizer<'str> {
         }
     }
 
+    // consumes char, which will be paren, and returns a paren token
     fn lex_paren(&mut self) -> Token {
         let c = self.chars.next().unwrap();
         match c {
@@ -110,11 +102,13 @@ impl<'str> Tokenizer<'str> {
         }
     }
 
+    // consumes char and returns a char token
     fn lex_char(&mut self) -> Token {
         let c = self.chars.next().unwrap();
         Token::Char(c)
     }
 
+    // consumes char, which will be anychar, and returns an anychar token
     fn lex_any_char(&mut self) -> Token {
         let c = self.chars.next().unwrap();
         match c {
@@ -122,10 +116,7 @@ impl<'str> Tokenizer<'str> {
             _ => panic!("unknown char"),
         }
     }
-
-        }
-
-
+}
 
 /**
  * Unit Tests for the `next` method.
@@ -136,6 +127,7 @@ mod iterator {
 
     #[test]
     fn empty() {
+        // tests for empty string
         let mut tokens = Tokenizer::new("");
         assert_eq!(tokens.next(), None);
         assert_eq!(tokens.next(), None);
@@ -143,6 +135,7 @@ mod iterator {
 
     #[test]
     fn parenthesis() {
+        // tests just parentheses
         let mut tokens = Tokenizer::new("()");
         assert_eq!(tokens.next(), Some(Token::LParen));
         assert_eq!(tokens.next(), Some(Token::RParen));
@@ -150,6 +143,7 @@ mod iterator {
 
     #[test]
     fn union() {
+        // tests the unionbar token
         let mut tokens = Tokenizer::new("|");
         assert_eq!(tokens.next(), Some(Token::UnionBar));
         assert_eq!(tokens.next(), None);
@@ -157,6 +151,7 @@ mod iterator {
 
     #[test]
     fn kleene() {
+        // tests the kleene star token
         let mut tokens = Tokenizer::new("*");
         assert_eq!(tokens.next(), Some(Token::KleeneStar));
         assert_eq!(tokens.next(), None);
@@ -164,29 +159,38 @@ mod iterator {
 
     #[test]
     fn anychar() {
+        // tests the anychar token
         let mut tokens = Tokenizer::new(".");
         assert_eq!(tokens.next(), Some(Token::AnyChar));
         assert_eq!(tokens.next(), None);
     }
 
-    #[test] 
+    #[test]
     fn char() {
-        let mut tokens = Tokenizer::new("a"); 
-        assert_eq!(tokens.next(), Some(Token::Char('a'))); 
-        assert_eq!(tokens.next(), None); 
+        // tests the char token
+        let mut tokens = Tokenizer::new("a");
+        assert_eq!(tokens.next(), Some(Token::Char('a')));
+        assert_eq!(tokens.next(), None);
+    }
+
+    #[test]
+    fn whitespace() {
+        // tests that whitespace is recognized as a token
+        let mut tokens = Tokenizer::new(" ");
+        assert_eq!(tokens.next(), Some(Token::Char(' ')));
     }
 
     //checks each kind of token next can generate
     #[test]
     fn alltokens() {
-        let mut tokens = Tokenizer::new("a | * ( ) .");
+        let mut tokens = Tokenizer::new("a|*().");
         assert_eq!(tokens.next(), Some(Token::Char('a')));
         assert_eq!(tokens.next(), Some(Token::UnionBar));
         assert_eq!(tokens.next(), Some(Token::KleeneStar));
         assert_eq!(tokens.next(), Some(Token::LParen));
         assert_eq!(tokens.next(), Some(Token::RParen));
         assert_eq!(tokens.next(), Some(Token::AnyChar));
-        assert_eq!(tokens.next(), None); 
+        assert_eq!(tokens.next(), None);
     }
 
 }
