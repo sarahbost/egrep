@@ -1,6 +1,6 @@
 # ps05-thegrep-shannonandsarah
 ## Tar Heel egrep-thegrep
-### PS05, COMP 590 Little Languages
+PS05, COMP :five: :nine: :zero: Little Languages
 
 ### DESIGN DECISIONS
 For **thegrep,** we decided to base our design and structure strictly off of the given grammar for the language. We kept the tokenizing functionality in one file, and organized it into several methods and sections. The parsing took place in another file, again, broken up into several methods and helper methods. Parsing and tokenizing were called in main.rs when the appropriate flags were signaled by the user during **cargo run**. 
