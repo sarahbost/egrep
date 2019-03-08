@@ -1,5 +1,5 @@
 # ps05-thegrep-shannonandsarah
-## Tar Heelegrep-thegrep
+## Tar Heel egrep-thegrep
 ### PS05, COMP 590 Little Languages
 
 ### DESIGN DECISIONS
