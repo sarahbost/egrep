@@ -54,6 +54,7 @@ impl<'str> Iterator for Tokenizer<'str> {
      * complete Some(Token) in the Tokenizer's input string or None at all.
      */
     fn next(&mut self) -> Option<Token> {
+        self.lex_whitespace();
         if let Some(c) = self.chars.peek() {
             Some(match c {
                 '|' => self.lex_union_bar(),
@@ -74,6 +75,15 @@ impl<'str> Iterator for Tokenizer<'str> {
  * so these are internal methods only.
  */
 impl<'str> Tokenizer<'str> {
+    // consumes whitespace
+    fn lex_whitespace(&mut self) {
+        while let Some(c) = self.chars.peek() {
+            match c {
+                ' ' | '\t' | '\n' => self.chars.next(),
+                _ => break,
+            };
+        }
+    }
     // consumes char, which will be union bar, and returns a unionbar token
     fn lex_union_bar(&mut self) -> Token {
         let c = self.chars.next().unwrap();
@@ -171,13 +181,6 @@ mod iterator {
         let mut tokens = Tokenizer::new("a");
         assert_eq!(tokens.next(), Some(Token::Char('a')));
         assert_eq!(tokens.next(), None);
-    }
-
-    #[test]
-    fn whitespace() {
-        // tests that whitespace is recognized as a token
-        let mut tokens = Tokenizer::new(" ");
-        assert_eq!(tokens.next(), Some(Token::Char(' ')));
     }
 
     //checks each kind of token next can generate
