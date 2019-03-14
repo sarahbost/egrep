@@ -68,6 +68,40 @@ impl<'tokens> Parser<'tokens> {
     }
 }
 
+
+#[cfg(test)]
+mod public_api {
+    use super::*;
+
+    mod lvl0 {
+        use super::*;
+
+        #[test]
+        fn parse_atom() {
+            let res = Parser::parse(Tokenizer::new("(1)")).unwrap();
+            assert_eq!(Char(1.0), res);
+        }
+
+        #[test]
+        fn parse_atom_parens() {
+            let res = Parser::parse(Tokenizer::new("(1)")).unwrap();
+          //  assert_eq!(num(1.0), res);
+        }
+
+        #[test]
+        fn parse_err_did_not_consume_whole_input() {
+            let res = Parser::parse(Tokenizer::new("1 2"));
+            assert_eq!(
+                Err(String::from("Expected end of input, found Number(2.0)")),
+                res
+            );
+        }
+    }
+}
+
+
+
+
 /**
  * Internal-only parser methods to process the grammar via recursive descent.
  */
@@ -194,3 +228,6 @@ impl<'tokens> Parser<'tokens> {
         }
     }
 }
+
+
+
