@@ -42,7 +42,6 @@ const EXIT_ERR: i32 = 1;
  fn main() {
      let opt = Opt::from_args();
 
-   print_stdin(&opt); 
      let result = if opt.paths.len() > 0 {
          print_files(&opt)
      } else {
@@ -61,9 +60,8 @@ const EXIT_ERR: i32 = 1;
  }
 
 fn print_files(opt: &Opt) -> io::Result<()> { 
-    for path in opt.paths.iter() {
-        let file = File::open(path)?; 
-        let reader = io::BufReader::new(file); 
+    for path in opt.paths.iter() { 
+        let reader = io::BufReader::new(;
         print_lines(reader, opt)?;
     }
     Ok(())
@@ -72,14 +70,9 @@ fn print_files(opt: &Opt) -> io::Result<()> {
 fn print_lines<R: BufRead>(reader: R, opt: &Opt) -> io::Result<()> {
     let  mut argument: String = "".to_string(); 
     for line_result in reader.lines() {        
-        match line_result {
-            Ok(line) => argument.push_str(&line),
-            Err(msg) => {
-            }, 
+        println!("{:?}", line_result); 
     }
-    }
-    println!("{}", argument);  
-    eval(&argument, opt); 
+    //eval(&argument, opt); 
     Ok(())
 
 }
