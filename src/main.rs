@@ -14,14 +14,6 @@
 extern crate structopt;
 use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
-
-
-//const QUIT_STRING: &str = "quit\n";
-//const EXIT_OK: i32 = 0;
-//const EXIT_ERR: i32 = 1;
-
-//use std::io;
-//#[derive(Debug, StructOpt)]
 #[structopt(name = "thegrepc", about = "Tar Heel Egrep")]
 
 //setting up flags for parse and tokens
@@ -34,48 +26,55 @@ struct Opt {
     paths: Vec<String>,
 }
 
-use std::fs::File; 
-use std::io::BufRead; 
-use std::io::Read; 
+use std::fs::File;
 use std::io;
+use std::io::BufRead;
+use std::io::Read;
 
-const EXIT_ERR: i32 = 1; 
- fn main() {
-     let opt = Opt::from_args();
+fn main() {
+    let opt = Opt::from_args();
 
-     let result = if opt.paths.len() > 0 {
-         print_files(&opt)
-     } else {
+    //if arguments are passed in read from file/paths otherwise evaluate input from std::in
+    let result = if opt.paths.len() > 0 {
+        print_files(&opt)
+    } else {
         print_stdin(&opt)
-};
+    };
+
+    //print error if paths has error
     if let Err(e) = result {
         eprintln!("{}", e);
     }
 }
 
- fn print_stdin(opt: &Opt) -> io::Result<()> {
+//processes input and calls print function
+fn print_stdin(opt: &Opt) -> io::Result<()> {
     let mut buffer = String::new();
     let stdin = io::stdin();
     let reader = stdin.lock().read_to_string(&mut buffer)?;
     print_lines(reader.to_string(), opt);
     Ok(())
- }
+}
 
-fn print_files(opt: &Opt) -> io::Result<()> { 
-    for path in opt.paths.iter() { 
+//iterates through all paths/files and calls print function
+fn print_files(opt: &Opt) -> io::Result<()> {
+    for path in opt.paths.iter() {
         print_lines(path.to_string(), opt)?;
     }
     Ok(())
 }
 
+//pushes all lines in a file onto string and calls eval function to call tokens/parser
 fn print_lines(reader: String, opt: &Opt) -> io::Result<()> {
-    let  mut argument: String = "".to_string(); 
-    for line_result in reader.lines() {        
-        argument.push_str(line_result); 
-    }
-    eval(&argument, opt); 
-    Ok(())
+    //*THIS DIDN"T DO ANYTHING WHEN I COMMENTED IT OUT? ERASE BEFORE FINAL SUBMIT
+    //let mut argument: String = "".to_string();
+    //for line_result in reader.lines() {
+    //    argument.push_str(line_result);
+    // }
 
+    //call eval function to process tokens/parser
+    eval(&reader, opt);
+    Ok(())
 }
 
 // importing tokenizer and parser to use in main
@@ -84,42 +83,23 @@ use self::tokenizer::Tokenizer;
 pub mod parser;
 use self::parser::Parser;
 
-
-//calls appropriate function based on flags
+//creates parser/ tokenzer to parse or tokenize input
 fn eval(input: &str, options: &Opt) {
     if options.parse {
         match Parser::parse(Tokenizer::new(input)) {
             Ok(statement) => {
-                println!("{:?}", statement); 
+                println!("{:?}", statement);
             }
-            Err(msg) => eprintln!("thegrep: {}", msg), 
+            Err(msg) => eprintln!("thegrep: {}", msg),
         }
         print!("\n");
     }
     if options.tokens {
-        eval_tokens(input);
-    }
-}
-
-// evaluate here if parse flag detected
-fn eval_parser(input: &str) {
-    // create a new parser and cycle through input, return Ok for each parse chain and Err if
-    // parser detected an error
-    match Parser::parse(Tokenizer::new(input)) {
-        Ok(statement) => {
-            println!("{:?}", statement);
+        // create a new tokenizer and cycle through tokens
+        let mut tokens = Tokenizer::new(input);
+        while let Some(token) = tokens.next() {
+            println!("{:?}", token);
         }
-        Err(msg) => eprintln!("thegrep: {}", msg),
+        print!("\n");
     }
-    print!("\n");
-}
-
-// evaluate here if tokens flag detected
-fn eval_tokens(input: &str) {
-    // create a new tokenizer and cycle through tokens
-    let mut tokens = Tokenizer::new(input);
-    while let Some(token) = tokens.next() {
-        println!("{:?}", token);
-    }
-    print!("\n");
 }
