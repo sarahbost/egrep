@@ -36,7 +36,8 @@ struct Opt {
 
 use std::fs::File; 
 use std::io::BufRead; 
-use std::io; 
+use std::io::Read; 
+use std::io;
 
 const EXIT_ERR: i32 = 1; 
  fn main() {
@@ -53,21 +54,21 @@ const EXIT_ERR: i32 = 1;
 }
 
  fn print_stdin(opt: &Opt) -> io::Result<()> {
+    let mut buffer = String::new();
     let stdin = io::stdin();
-    let reader = stdin.lock();
-    print_lines(reader, opt);
+    let reader = stdin.lock().read_to_string(&mut buffer)?;
+    print_lines(reader.to_string(), opt);
     Ok(())
  }
 
 fn print_files(opt: &Opt) -> io::Result<()> { 
     for path in opt.paths.iter() { 
-        let reader = io::BufReader::new(;
-        print_lines(reader, opt)?;
+        print_lines(path.to_string(), opt)?;
     }
     Ok(())
 }
 
-fn print_lines<R: BufRead>(reader: R, opt: &Opt) -> io::Result<()> {
+fn print_lines(reader: String, opt: &Opt) -> io::Result<()> {
     let  mut argument: String = "".to_string(); 
     for line_result in reader.lines() {        
         println!("{:?}", line_result); 
