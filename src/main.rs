@@ -71,9 +71,9 @@ fn print_files(opt: &Opt) -> io::Result<()> {
 fn print_lines(reader: String, opt: &Opt) -> io::Result<()> {
     let  mut argument: String = "".to_string(); 
     for line_result in reader.lines() {        
-        println!("{:?}", line_result); 
+        argument.push_str(line_result); 
     }
-    //eval(&argument, opt); 
+    eval(&argument, opt); 
     Ok(())
 
 }
@@ -122,29 +122,4 @@ fn eval_tokens(input: &str) {
         println!("{:?}", token);
     }
     print!("\n");
-}
-
-// this reads in input from command line args
-fn read() -> String {
-    match read_line() {
-        Ok(line) => {
-        //    if line == QUIT_STRING {
-                // Exit the process with an Ok exit code.
-        //        std::process::exit(EXIT_OK);
-        //    } else {
-                line
-         //   }
-        }
-        Err(message) => {
-            eprintln!("Err: {}", message);
-           std::process::exit(EXIT_ERR);
-        }
-    }
-}
-
-// this reads a line of input
-fn read_line() -> Result<String, io::Error> {
-    let mut input = String::new();
-    io::stdin().read_line(&mut input)?;
-    Ok(input)
 }
