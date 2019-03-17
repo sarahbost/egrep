@@ -13,6 +13,7 @@
 //allows us to use structopt crate for flags, etc
 extern crate structopt;
 use structopt::StructOpt;
+use std::ops::Add;  
 
 const QUIT_STRING: &str = "quit\n";
 const EXIT_OK: i32 = 0;
@@ -37,16 +38,24 @@ pub mod parser;
 use self::parser::Parser;
 
 fn main() {
-    let opt = Opt::from_args();
+    let opt = Opt::from_args(); 
+
+
     loop {
-        eval(&read(), &opt);
-    }
+       eval(&read(), &opt); 
+   }
 }
 
 //calls appropriate function based on flags
 fn eval(input: &str, options: &Opt) {
     if options.parse {
-        eval_parser(input);
+        match Parser::parse(Tokenizer::new(input)) {
+            Ok(statement) => {
+                println!("{:?}", statement); 
+            }
+            Err(msg) => eprintln!("thegrep: {}", msg), 
+        }
+        print!("\n");
     }
     if options.tokens {
         eval_tokens(input);
