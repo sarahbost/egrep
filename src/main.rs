@@ -13,14 +13,15 @@
 //allows us to use structopt crate for flags, etc
 extern crate structopt;
 use structopt::StructOpt;
-use std::ops::Add;  
-
-const QUIT_STRING: &str = "quit\n";
-const EXIT_OK: i32 = 0;
-const EXIT_ERR: i32 = 1;
-
-use std::io;
 #[derive(Debug, StructOpt)]
+
+
+//const QUIT_STRING: &str = "quit\n";
+//const EXIT_OK: i32 = 0;
+//const EXIT_ERR: i32 = 1;
+
+//use std::io;
+//#[derive(Debug, StructOpt)]
 #[structopt(name = "thegrepc", about = "Tar Heel Egrep")]
 
 //setting up flags for parse and tokens
@@ -29,6 +30,58 @@ struct Opt {
     parse: bool,
     #[structopt(short = "t", long = "tokens")]
     tokens: bool,
+    #[structopt(help = "FILES")]
+    paths: Vec<String>,
+}
+
+use std::fs::File; 
+use std::io::BufRead; 
+use std::io; 
+
+const EXIT_ERR: i32 = 1; 
+ fn main() {
+     let opt = Opt::from_args();
+
+   print_stdin(&opt); 
+     let result = if opt.paths.len() > 0 {
+         print_files(&opt)
+     } else {
+        print_stdin(&opt)
+};
+    if let Err(e) = result {
+        eprintln!("{}", e);
+    }
+}
+
+ fn print_stdin(opt: &Opt) -> io::Result<()> {
+    let stdin = io::stdin();
+    let reader = stdin.lock();
+    print_lines(reader, opt);
+    Ok(())
+ }
+
+fn print_files(opt: &Opt) -> io::Result<()> { 
+    for path in opt.paths.iter() {
+        let file = File::open(path)?; 
+        let reader = io::BufReader::new(file); 
+        print_lines(reader, opt)?;
+    }
+    Ok(())
+}
+
+fn print_lines<R: BufRead>(reader: R, opt: &Opt) -> io::Result<()> {
+    let  mut argument: String = "".to_string(); 
+    for line_result in reader.lines() {        
+        match line_result {
+            Ok(line) => argument.push_str(&line),
+            Err(msg) => {
+            }, 
+    }
+    }
+    println!("{}", argument);  
+    eval(&argument, opt); 
+    Ok(())
+
 }
 
 // importing tokenizer and parser to use in main
@@ -37,14 +90,6 @@ use self::tokenizer::Tokenizer;
 pub mod parser;
 use self::parser::Parser;
 
-fn main() {
-    let opt = Opt::from_args(); 
-
-
-    loop {
-       eval(&read(), &opt); 
-   }
-}
 
 //calls appropriate function based on flags
 fn eval(input: &str, options: &Opt) {
@@ -89,16 +134,16 @@ fn eval_tokens(input: &str) {
 fn read() -> String {
     match read_line() {
         Ok(line) => {
-            if line == QUIT_STRING {
+        //    if line == QUIT_STRING {
                 // Exit the process with an Ok exit code.
-                std::process::exit(EXIT_OK);
-            } else {
+        //        std::process::exit(EXIT_OK);
+        //    } else {
                 line
-            }
+         //   }
         }
         Err(message) => {
             eprintln!("Err: {}", message);
-            std::process::exit(EXIT_ERR);
+           std::process::exit(EXIT_ERR);
         }
     }
 }
