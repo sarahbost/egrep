@@ -68,7 +68,6 @@ impl<'tokens> Parser<'tokens> {
     }
 }
 
-
 #[cfg(test)]
 mod parsertests {
     use super::*;
@@ -77,8 +76,8 @@ mod parsertests {
 
     mod basictests {
 
-        use crate::parser::AST::*;
         use super::*;
+        use crate::parser::AST::*;
 
         #[test]
         fn parse_char() {
@@ -91,13 +90,13 @@ mod parsertests {
             let res = Parser::parse(Tokenizer::new("ab")).unwrap();
             assert_eq!(Catenation(Box::new(Char('a')), Box::new(Char('b'))), res);
         }
-        
+
         #[test]
         fn parse_alt() {
             let res = Parser::parse(Tokenizer::new("a|b")).unwrap();
             assert_eq!(Alternation(Box::new(Char('a')), Box::new(Char('b'))), res);
         }
-        
+
         #[test]
         fn parse_closure() {
             let res = Parser::parse(Tokenizer::new("a*")).unwrap();
@@ -113,41 +112,55 @@ mod parsertests {
 
     mod intermediatetests {
 
-        use crate::parser::*;
         use super::*;
+        use crate::parser::*;
 
         #[test]
         fn parse1() {
             let res = Parser::parse(Tokenizer::new("a.*")).unwrap();
-            assert_eq!(Catenation(Box::new(Char('a')), Box::new(Closure(Box::new(AnyChar)))), res);
+            assert_eq!(
+                Catenation(Box::new(Char('a')), Box::new(Closure(Box::new(AnyChar)))),
+                res
+            );
         }
-        
+
         #[test]
         fn parse2() {
             let res = Parser::parse(Tokenizer::new("a|b|c")).unwrap();
-            assert_eq!(Alternation(Box::new(Char('a')), Box::new(Alternation(Box::new(Char('b')), Box::new(Char('c'))))), res);
+            assert_eq!(
+                Alternation(
+                    Box::new(Char('a')),
+                    Box::new(Alternation(Box::new(Char('b')), Box::new(Char('c'))))
+                ),
+                res
+            );
         }
-        
+
         #[test]
         fn parse3() {
             let res = Parser::parse(Tokenizer::new("(ab)*")).unwrap();
-            assert_eq!(Closure(Box::new(Catenation(Box::new(Char('a')), Box::new(Char('b'))))), res);
+            assert_eq!(
+                Closure(Box::new(Catenation(
+                    Box::new(Char('a')),
+                    Box::new(Char('b'))
+                ))),
+                res
+            );
         }
     }
 
-   //  mod hardtests {
-        
-      //  use super::*;
-      //  use parser::*;
-        
-      //  #[test]
-      //  fn challenge() {
-      //      let res = Parser::parse(Tokenizer::new("b(oo*|a)m")).unwrap();
-       //     assert_eq!(Catenation(Box::new(Char('b')), Box::new(Catenation(Box::new(Alternation(Box::new(Catenation(Box::new(Char('o')), Box::new(Closure(Box::new(Char('o')))), Box::new(Char('a'))))))), Box::new(Char('m')))), res);
+    //  mod hardtests {
+
+    //  use super::*;
+    //  use parser::*;
+
+    //  #[test]
+    //  fn challenge() {
+    //      let res = Parser::parse(Tokenizer::new("b(oo*|a)m")).unwrap();
+    //     assert_eq!(Catenation(Box::new(Char('b')), Box::new(Catenation(Box::new(Alternation(Box::new(Catenation(Box::new(Char('o')), Box::new(Closure(Box::new(Char('o')))), Box::new(Char('a'))))))), Box::new(Char('m')))), res);
     //    }
     //}
 }
-
 
 /**
  * Internal-only parser methods to process the grammar via recursive descent.
@@ -275,6 +288,3 @@ impl<'tokens> Parser<'tokens> {
         }
     }
 }
-
-
-
