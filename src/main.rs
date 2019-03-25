@@ -24,6 +24,8 @@ struct Opt {
     tokens: bool,
     #[structopt(help = "FILES")]
     paths: Vec<String>,
+    #[structopt(short = "d", long = "dot")]
+    dot: bool,
 }
 
 use std::fs::File;
@@ -82,6 +84,9 @@ pub mod tokenizer;
 use self::tokenizer::Tokenizer;
 pub mod parser;
 use self::parser::Parser;
+pub mod nfa;
+use self::nfa::NFA;
+use self::nfa::helpers::nfa_dot;
 
 //creates parser/ tokenzer to parse or tokenize input
 fn eval(input: &str, options: &Opt) {
@@ -101,5 +106,11 @@ fn eval(input: &str, options: &Opt) {
             println!("{:?}", token);
         }
         print!("\n");
+    }
+    if options.dot {
+        // push output to dot nfa representation
+        let nfa = NFA::from(input).unwrap();
+        println!("{}", nfa_dot(&nfa));
+        std::process::exit(0);
     }
 }
