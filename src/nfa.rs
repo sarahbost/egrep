@@ -1,5 +1,6 @@
 pub mod helpers;
 
+
 // Starter code for PS06 - thegrep
 // Add Honor Code Header and Collaborators Here
 
@@ -149,12 +150,32 @@ impl NFA {
                 } 
 
             },
+            AST::Alternation(one, two) => {
+                let split_state = self.add(Split(None, None)); 
+
+                let fragment_one = self.gen_fragment(one); 
+                let fragment_two = self.gen_fragment(two);
+
+                
+               self.join(split_state, fragment_one.start);
+               self.join(split_state, fragment_two.start);
+
+            
+                Fragment {
+                    start: split_state, 
+                    ends: fragment_one.ends,
+                }
+            }
             AST::Closure(ast) => {
                 let fragment_ast = self.gen_fragment(ast); 
-                let split_state = self.add(Split(Some(fragment_ast.start), None)); 
-                self.join_fragment(&fragment_ast, split_state); 
+                let fragment_split = Split(Some(fragment_ast.start), None);
+
+               let split_state = self.add(fragment_split); 
+             //   self.join_fragment(&fragment_ast, split_state); 
+
+                
                 Fragment {
-                    start: fragment_ast.start, 
+                    start: split_state, 
                     ends: fragment_ast.ends,
                 }
 
