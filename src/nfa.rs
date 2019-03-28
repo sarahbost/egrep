@@ -143,14 +143,24 @@ impl NFA {
                 self.join_fragment(&fragment_lhs, fragment_rhs.start);
                 self.join_fragment(&fragment_rhs, fragment_rhs.start); 
 
-                //make a new match statement? not sure how to do this because it has to be a char
-                //let state_cat = self.add(Match(Char::Literal(fragment_lhs)
                 Fragment {
                     start: fragment_lhs.start,
                     ends: fragment_rhs.ends,
                 } 
 
             },
+            AST::Closure(ast) => {
+                let fragment_ast = self.gen_fragment(ast); 
+                let split_state = self.add(Split(Some(fragment_ast.start), None)); 
+                self.join_fragment(&fragment_ast, split_state); 
+                Fragment {
+                    start: fragment_ast.start, 
+                    ends: fragment_ast.ends,
+                }
+
+
+                 }
+
             node => panic!("Unimplemented branch of gen_fragment: {:?}", node)
         }
     }
