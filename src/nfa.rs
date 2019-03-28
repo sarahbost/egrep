@@ -140,13 +140,14 @@ impl NFA {
             AST::Catenation(lhs, rhs)  => {
                 let fragment_lhs = self.gen_fragment(lhs);
                 let fragment_rhs = self.gen_fragment(rhs); 
-                self.join_fragment(fragment_lhs, fragment_rhs.start);
+                self.join_fragment(&fragment_lhs, fragment_rhs.start);
+                self.join_fragment(&fragment_rhs, fragment_rhs.start); 
 
                 //make a new match statement? not sure how to do this because it has to be a char
-                let state_cat = self.add(Match(Char::Literal(fragment_lhs)
+                //let state_cat = self.add(Match(Char::Literal(fragment_lhs)
                 Fragment {
                     start: fragment_lhs.start,
-                    ends: vec![state_cat],
+                    ends: fragment_rhs.ends,
                 } 
 
             },
