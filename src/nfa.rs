@@ -1,4 +1,4 @@
-pub mod helpers;
+opub mod helpers;
 
 
 // Starter code for PS06 - thegrep
@@ -151,19 +151,15 @@ impl NFA {
 
             },
             AST::Alternation(one, two) => {
-                let split_state = self.add(Split(None, None)); 
-
                 let fragment_one = self.gen_fragment(one); 
                 let fragment_two = self.gen_fragment(two);
-
-                
-               self.join(split_state, fragment_one.start);
-               self.join(split_state, fragment_two.start);
-
-            
+                let split_state = self.add(Split(Some(fragment_one.start), Some(fragment_two.start))); 
+                let mut v = vec![];
+                v.extend(fragment_one.ends);
+                v.extend(fragment_two.ends);
                 Fragment {
                     start: split_state, 
-                    ends: fragment_one.ends,
+                    ends: v,
                 }
             }
             AST::Closure(ast) => {
