@@ -8,7 +8,7 @@ use super::parser::Parser;
 use super::parser::AST;
 use super::tokenizer::Tokenizer;
 use self::State::*;
-
+use std::iter::Peekable;
 /**
  * ===== Public API =====
  */
@@ -50,8 +50,7 @@ impl NFA {
      * input is accepted by the input string.
      */
     pub fn accepts(&self, input: &str) -> bool {
-        let input_iter = input.chars().peekable(); 
-
+    
     }
 
     pub fn recursive() {
@@ -212,5 +211,15 @@ impl NFA {
             Split(_, ref mut next) => *next = Some(to),
             End => {}
         }
+    }
+}
+#[cfg(test)]
+mod public_api {
+    use super::*;
+ 
+    #[test]
+    fn lvl0test() {
+        let nfa = NFA::from("a").unwrap();
+        assert_eq!(nfa.accepts("a"), true);
     }
 }
