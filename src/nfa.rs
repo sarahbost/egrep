@@ -50,8 +50,18 @@ impl NFA {
      * input is accepted by the input string.
      */
     pub fn accepts(&self, input: &str) -> bool {
-        false
+        let input_iter = input.chars().peekable(); 
+
     }
+
+    pub fn recursive() {
+        self.states()
+        
+
+    }
+        
+        
+
 }
 
 /**
