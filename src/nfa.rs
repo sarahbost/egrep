@@ -1,4 +1,4 @@
-opub mod helpers;
+pub mod helpers;
 
 
 // Starter code for PS06 - thegrep
@@ -164,15 +164,13 @@ impl NFA {
             }
             AST::Closure(ast) => {
                 let fragment_ast = self.gen_fragment(ast); 
-                let fragment_split = Split(Some(fragment_ast.start), None);
+                let split_state = self.add(Split(Some(fragment_ast.start), None));
+                self.join(split_state, fragment_ast.start); 
+                self.join(fragment_ast.start, split_state); 
 
-               let split_state = self.add(fragment_split); 
-             //   self.join_fragment(&fragment_ast, split_state); 
-
-                
                 Fragment {
                     start: split_state, 
-                    ends: fragment_ast.ends,
+                    ends: vec![split_state],
                 }
 
 
