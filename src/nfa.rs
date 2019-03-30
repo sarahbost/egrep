@@ -22,7 +22,7 @@ pub struct NFA {
     states: Vec<State>,
 }
 
-impl NFA {
+ impl NFA {
     /**
      * Construct an NFA from a regular expression pattern.
      */
@@ -51,19 +51,19 @@ impl NFA {
     pub fn accepts(&self, input: &str) -> bool {
         //vector of chars
         let input_chars = input.chars().collect();
-        self.recursive(input_chars, 0, self.start)
+        self.recursive(&input_chars, 0, self.start)
     
     }
 
-    pub fn recursive(&self, chars: Vec<char>, chars_index: usize, start_state_id: StateId) -> bool {
+    pub fn recursive(&self, chars: &Vec<char>, chars_index: usize, start_state_id: StateId) -> bool {
         match &self.states[start_state_id] {
-            Start(state_id) => return self.recursive(chars, chars_index, state_id.unwrap()),
+            Start(state_id) => return self.recursive(&chars, chars_index, state_id.unwrap()),
             Split(lhs, rhs) => {
-                if self.recursive(chars, chars_index, lhs.unwrap()) {
+                if self.recursive(&chars, chars_index, lhs.unwrap()) {
                     return true;
                 }
 
-                if self.recursive(chars, chars_index, rhs.unwrap()) {
+                if self.recursive(&chars, chars_index, rhs.unwrap()) {
                     return true;
                 }
                 return false;
@@ -71,11 +71,15 @@ impl NFA {
             Match(character, state_id) => {
                 //if the char matches, keep going and increment index, if not it doesn't match and
                 //return false
-                if (character == chars[chars_index]) {
-                    return self.recursive(chars, chars_index + 1, state_id.unwrap());
-                } else {
-                    return false;
-                }
+                let check_char = chars[chars_index];
+               match character {
+                   check_char => {
+                        return self.recursive(&chars, chars_index + 1, state_id.unwrap());
+                   }
+                   _ => {
+                       return false;
+                   }
+            }
             }
             End => {
                 return true;
