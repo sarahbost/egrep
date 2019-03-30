@@ -51,28 +51,28 @@ impl NFA {
     pub fn accepts(&self, input: &str) -> bool {
         //vector of chars
         let input_chars = input.chars().collect();
-
-        let res = self.recursive(input_chars, 0, self.start);
+        self.recursive(input_chars, 0, self.start)
+    
     }
 
-    pub fn recursive(chars: Vec<char>, chars_index: u64, start_state_id: StateId) -> bool {
-        match nfa.states[state_id] {
-            Start(frag) => return self.recursive(chars, chars_index, frag.start),
+    pub fn recursive(&self, chars: Vec<char>, chars_index: usize, start_state_id: StateId) -> bool {
+        match &self.states[start_state_id] {
+            Start(state_id) => return self.recursive(chars, chars_index, state_id.unwrap()),
             Split(lhs, rhs) => {
-                if self.recursive(chars, chars_index, lhs.start) {
+                if self.recursive(chars, chars_index, lhs.unwrap()) {
                     return true;
                 }
 
-                if self.recursive(chars, chars_index, rhs.start) {
+                if self.recursive(chars, chars_index, rhs.unwrap()) {
                     return true;
                 }
                 return false;
             }
-            Match(frag) => {
+            Match(character, state_id) => {
                 //if the char matches, keep going and increment index, if not it doesn't match and
                 //return false
-                if (frag.getChar = chars[chars_index]) {
-                    return self.recursive(chars, chars_index + 1, frag.start);
+                if (character == chars[chars_index]) {
+                    return self.recursive(chars, chars_index + 1, state_id.unwrap());
                 } else {
                     return false;
                 }
