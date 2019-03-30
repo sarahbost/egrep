@@ -74,15 +74,18 @@ pub struct NFA {
                 let check_char = chars[chars_index];
                match character {
                    check_char => {
+                        if chars_index == chars.len() {
+                            return true; 
+                        }
                         return self.recursive(&chars, chars_index + 1, state_id.unwrap()+1);
                    }
                    _ => {
-                       return false;
+                      //not sure, i think you need to recursively call and start char index at 0  
                    }
             }
             }
             End => {
-                return true;
+                return false;
             }
         }
     }
@@ -257,7 +260,11 @@ mod public_api {
         let nfa = NFA::from("a.*").unwrap();
         assert_eq!(nfa.accepts("a.*"), true);
     }
-
+ #[test]
+    fn hello() {
+        let nfa = NFA::from("hello").unwrap();
+        assert_eq!(nfa.accepts("no"), false);
+    }
    
 
 
