@@ -57,13 +57,13 @@ pub struct NFA {
 
     pub fn recursive(&self, chars: &Vec<char>, chars_index: usize, start_state_id: StateId) -> bool {
         match &self.states[start_state_id] {
-            Start(state_id) => return self.recursive(&chars, chars_index, state_id.unwrap()),
+            Start(state_id) => return self.recursive(&chars, chars_index, state_id.unwrap() +1),
             Split(lhs, rhs) => {
-                if self.recursive(&chars, chars_index, lhs.unwrap()) {
+                if self.recursive(&chars, chars_index, lhs.unwrap() +1) {
                     return true;
                 }
 
-                if self.recursive(&chars, chars_index, rhs.unwrap()) {
+                if self.recursive(&chars, chars_index, rhs.unwrap() + 1) {
                     return true;
                 }
                 return false;
@@ -74,7 +74,7 @@ pub struct NFA {
                 let check_char = chars[chars_index];
                match character {
                    check_char => {
-                        return self.recursive(&chars, chars_index + 1, state_id.unwrap());
+                        return self.recursive(&chars, chars_index + 1, state_id.unwrap()+1);
                    }
                    _ => {
                        return false;
@@ -245,4 +245,22 @@ mod public_api {
         let nfa = NFA::from("a").unwrap();
         assert_eq!(nfa.accepts("a"), true);
     }
+
+     #[test]
+    fn empty() {
+        let nfa = NFA::from("sarah").unwrap(); 
+         assert_eq!(nfa.accepts("ra"), true);
+    }
+
+     #[test]
+    fn test1() {
+        let nfa = NFA::from("a.*").unwrap();
+        assert_eq!(nfa.accepts("a.*"), true);
+    }
+
+   
+
+
+
+
 }
