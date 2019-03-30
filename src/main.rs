@@ -24,6 +24,8 @@ struct Opt {
     tokens: bool,
     #[structopt(help = "FILES")]
     paths: Vec<String>,
+    #[structopt(help = "PATTERN")] 
+    pattern: String, 
     #[structopt(short = "d", long = "dot")]
     dot: bool,
 }
@@ -78,6 +80,8 @@ fn print_lines(reader: String, opt: &Opt) -> io::Result<()> {
     eval(&reader, opt);
     Ok(())
 }
+
+fn nfa_egrep(
 
 // importing tokenizer and parser to use in main
 pub mod tokenizer;
