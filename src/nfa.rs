@@ -22,7 +22,7 @@ pub struct NFA {
     states: Vec<State>,
 }
 
- impl NFA {
+impl NFA {
     /**
      * Construct an NFA from a regular expression pattern.
      */
@@ -51,43 +51,42 @@ pub struct NFA {
     pub fn accepts(&self, input: &str) -> bool {
         //vector of chars
         let input_chars = input.chars().collect();
-        self.recursive(&input_chars, 0, self.start)
-    
+        self.traverse(&input_chars, 0, self.start)
     }
 
-    pub fn recursive(&self, chars: &Vec<char>, chars_index: usize, start_state_id: StateId) -> bool {
+    pub fn traverse(&self, chars: &Vec<char>, chars_index: usize, start_state_id: StateId) -> bool {
         match &self.states[start_state_id] {
-            Start(state_id) => return self.recursive(&chars, chars_index, state_id.unwrap() +1),
+            Start(state_id) => return self.traverse(&chars, chars_index, state_id.unwrap() + 1),
             Split(lhs, rhs) => {
-                if self.recursive(&chars, chars_index, lhs.unwrap() +1) {
+                if self.traverse(&chars, chars_index, lhs.unwrap() + 1) {
                     return true;
                 }
 
-                if self.recursive(&chars, chars_index, rhs.unwrap() + 1) {
+                if self.traverse(&chars, chars_index, rhs.unwrap() + 1) {
                     return true;
                 }
                 return false;
-            }
+            },
             Match(character, state_id) => {
                 //if the char matches, keep going and increment index, if not it doesn't match and
                 //return false
                 let check_char = chars[chars_index];
-               match character {
-                   check_char => {
+                match character {
+                    check_char => {
                         if chars_index == chars.len() {
-                            return true; 
+                            return true;
                         }
-                        return self.recursive(&chars, chars_index + 1, state_id.unwrap()+1);
-                   }
-                   _ => {
-                      //not sure, i think you need to recursively call and start char index at 0  
-                   }
-            }
-            }
+                        return self.traverse(&chars, chars_index + 1, state_id.unwrap() + 1);
+                    },
+                    _ => { return false;
+                        //not sure, i think you need to recursively call and start char index at 0
+                    },
+                };
+            },
             End => {
                 return false;
-            }
-        }
+            },
+        };
     }
 }
 
@@ -249,25 +248,21 @@ mod public_api {
         assert_eq!(nfa.accepts("a"), true);
     }
 
-     #[test]
+    #[test]
     fn empty() {
-        let nfa = NFA::from("sarah").unwrap(); 
-         assert_eq!(nfa.accepts("ra"), true);
+        let nfa = NFA::from("sarah").unwrap();
+        assert_eq!(nfa.accepts("ra"), true);
     }
 
-     #[test]
+    #[test]
     fn test1() {
         let nfa = NFA::from("a.*").unwrap();
         assert_eq!(nfa.accepts("a.*"), true);
     }
- #[test]
+    #[test]
     fn hello() {
         let nfa = NFA::from("hello").unwrap();
         assert_eq!(nfa.accepts("no"), false);
     }
-   
-
-
-
 
 }

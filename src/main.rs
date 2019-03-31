@@ -70,18 +70,12 @@ fn print_files(opt: &Opt) -> io::Result<()> {
 
 //pushes all lines in a file onto string and calls eval function to call tokens/parser
 fn print_lines(reader: String, opt: &Opt) -> io::Result<()> {
-    //*THIS DIDN"T DO ANYTHING WHEN I COMMENTED IT OUT? ERASE BEFORE FINAL SUBMIT
-    //let mut argument: String = "".to_string();
-    //for line_result in reader.lines() {
-    //    argument.push_str(line_result);
-    // }
-
     //call eval function to process tokens/parser
     eval(&reader, opt);
     Ok(())
 }
 
-fn nfa_egrep(
+// fn nfa_egrep(
 
 // importing tokenizer and parser to use in main
 pub mod tokenizer;
