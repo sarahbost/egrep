@@ -56,13 +56,13 @@ impl NFA {
 
     pub fn traverse(&self, chars: &Vec<char>, chars_index: usize, start_state_id: StateId) -> bool {
         match &self.states[start_state_id] {
-            Start(state_id) => return self.traverse(&chars, chars_index, state_id.unwrap() + 1),
+            Start(state_id) => return self.traverse(&chars, chars_index, state_id.unwrap()),
             Split(lhs, rhs) => {
-                if self.traverse(&chars, chars_index, lhs.unwrap() + 1) {
+                if self.traverse(&chars, chars_index, lhs.unwrap()) {
                     return true;
                 }
 
-                if self.traverse(&chars, chars_index, rhs.unwrap() + 1) {
+                if self.traverse(&chars, chars_index, rhs.unwrap()) {
                     return true;
                 }
                 return false;
@@ -70,20 +70,27 @@ impl NFA {
             Match(character, state_id) => {
                 //if the char matches, keep going and increment index, if not it doesn't match and
                 //return false
-                let check_char = chars[chars_index];
+                if chars.len() == chars_index {
+                    return false;
+                }
+                // make sure to handle case where it is an exact match on last char
                 match character {
-                    check_char => {
-                        if chars_index == chars.len() {
-                            return true;
+                    Char::Literal(c) => {
+                        if c == &chars[chars_index] {
+                            return self.traverse(&chars, chars_index + 1, state_id.unwrap());                            
+                        } else {
+                            return self.traverse(&chars, chars_index, state_id.unwrap());
                         }
-                        return self.traverse(&chars, chars_index + 1, state_id.unwrap() + 1);
                     },
-                    _ => { return false;
-                        //not sure, i think you need to recursively call and start char index at 0
+                    Char::Any => {
+                        return self.traverse(&chars, chars_index + 1, state_id.unwrap());
                     },
                 };
             },
             End => {
+                if chars_index == chars.len() {
+                    return true;
+                }
                 return false;
             },
         };
@@ -243,26 +250,36 @@ mod public_api {
     use super::*;
 
     #[test]
-    fn lvl0test() {
+    fn test0() {
         let nfa = NFA::from("a").unwrap();
         assert_eq!(nfa.accepts("a"), true);
     }
 
     #[test]
-    fn empty() {
+    fn test1() {
         let nfa = NFA::from("sarah").unwrap();
-        assert_eq!(nfa.accepts("ra"), true);
+        assert_eq!(nfa.accepts("ra"), false);
     }
 
     #[test]
-    fn test1() {
+    fn test2() {
         let nfa = NFA::from("a.*").unwrap();
-        assert_eq!(nfa.accepts("a.*"), true);
+        assert_eq!(nfa.accepts("abb"), true);
     }
     #[test]
-    fn hello() {
+    fn test3() {
         let nfa = NFA::from("hello").unwrap();
         assert_eq!(nfa.accepts("no"), false);
     }
-
+    #[test]
+    fn test4() {
+        let nfa = NFA::from("aut....a").unwrap();
+        assert_eq!(nfa.accepts("automata"), true);
+    }
+    #[test]
+    fn test5() {
+        let nfa = NFA::from("aut....a").unwrap();
+        assert_eq!(nfa.accepts("asdfasdf"), false);
+    }
 }
+

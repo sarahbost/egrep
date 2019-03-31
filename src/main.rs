@@ -22,12 +22,10 @@ struct Opt {
     parse: bool,
     #[structopt(short = "t", long = "tokens")]
     tokens: bool,
-    #[structopt(help = "FILES")]
-    paths: Vec<String>,
-    #[structopt(help = "PATTERN")] 
-    pattern: String, 
     #[structopt(short = "d", long = "dot")]
     dot: bool,
+    #[structopt(help = "FILES")]
+    paths: Vec<String>,
 }
 
 use std::fs::File;
@@ -39,7 +37,7 @@ fn main() {
     let opt = Opt::from_args();
 
     //if arguments are passed in read from file/paths otherwise evaluate input from std::in
-    let result = if opt.paths.len() > 0 {
+    let result = if opt.paths.len() > 1 {
         print_files(&opt)
     } else {
         print_stdin(&opt)
@@ -60,6 +58,7 @@ fn print_stdin(opt: &Opt) -> io::Result<()> {
 
 //iterates through all paths/files and calls print function
 fn print_files(opt: &Opt) -> io::Result<()> {
+    let regex = opt.paths[0].to_string();
     for path in opt.paths.iter().skip(1) {
         let file = File::open(path)?;
         let mut reader = io::BufReader::new(file);
@@ -83,8 +82,8 @@ use self::tokenizer::Tokenizer;
 pub mod parser;
 use self::parser::Parser;
 pub mod nfa;
-use self::nfa::NFA;
 use self::nfa::helpers::nfa_dot;
+use self::nfa::NFA;
 
 //creates parser/ tokenzer to parse or tokenize input
 fn eval(input: &str, options: &Opt) {
@@ -111,8 +110,8 @@ fn eval(input: &str, options: &Opt) {
         println!("{}", nfa_dot(&nfa));
         std::process::exit(0);
     }
-        let nfa = NFA::from(&options.pattern).unwrap();
-        if nfa.accepts(input) {
-            println!("{}", input);
-        }
+    let nfa = NFA::from(&options.paths[0]).unwrap();
+    if nfa.accepts(input) {
+        println!("{}", input);
+    }
 }
