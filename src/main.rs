@@ -53,29 +53,29 @@ fn main() {
 
 //processes input and calls print function
 fn print_stdin(opt: &Opt) -> io::Result<()> {
-    let mut buffer = String::new();
     let stdin = io::stdin();
-    let reader = stdin.lock().read_to_string(&mut buffer)?;
-    print_lines(reader.to_string(), opt);
-    Ok(())
+    let reader = stdin.lock();
+    print_lines(reader, opt)
 }
 
 //iterates through all paths/files and calls print function
 fn print_files(opt: &Opt) -> io::Result<()> {
-    for path in opt.paths.iter() {
-        print_lines(path.to_string(), opt)?;
+    for path in opt.paths.iter().skip(1) {
+        let file = File::open(path)?;
+        let mut reader = io::BufReader::new(file);
+        print_lines(reader, opt)?;
     }
     Ok(())
 }
 
 //pushes all lines in a file onto string and calls eval function to call tokens/parser
-fn print_lines(reader: String, opt: &Opt) -> io::Result<()> {
+fn print_lines<R: BufRead>(reader: R, opt: &Opt) -> io::Result<()> {
     //call eval function to process tokens/parser
-    eval(&reader, opt);
+    for line in reader.lines() {
+        eval(&line?, opt);
+    }
     Ok(())
 }
-
-// fn nfa_egrep(
 
 // importing tokenizer and parser to use in main
 pub mod tokenizer;
@@ -111,4 +111,8 @@ fn eval(input: &str, options: &Opt) {
         println!("{}", nfa_dot(&nfa));
         std::process::exit(0);
     }
+        let nfa = NFA::from(&options.pattern).unwrap();
+        if nfa.accepts(input) {
+            println!("{}", input);
+        }
 }
