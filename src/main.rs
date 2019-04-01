@@ -10,13 +10,13 @@
  * on this assignment. I further pledge not to distribute my solution
  * to this code to anyone other than the course staff and partner.
  */
-//allows us to use structopt crate for flags, etc
+// allows us to use structopt crate for flags, etc
 extern crate structopt;
 use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "thegrepc", about = "Tar Heel Egrep")]
 
-//setting up flags for parse and tokens
+// setting up flags for parse and tokens
 struct Opt {
     #[structopt(short = "p", long = "parse")]
     parse: bool,
@@ -36,30 +36,31 @@ use std::io::Read;
 fn main() {
     let opt = Opt::from_args();
 
-    //if arguments are passed in read from file/paths otherwise evaluate input from std::in
+    // if arguments are passed in read from file/paths otherwise evaluate input from std::in
     let result = if opt.paths.len() > 1 {
         print_files(&opt)
     } else {
         print_stdin(&opt)
     };
 
-    //print error if paths has error
+    // print error if paths has error
     if let Err(e) = result {
         eprintln!("{}", e);
     }
 }
 
-//processes input and calls print function
+// processes input and calls print function
 fn print_stdin(opt: &Opt) -> io::Result<()> {
     let stdin = io::stdin();
     let reader = stdin.lock();
     print_lines(reader, opt)
 }
 
-//iterates through all paths/files and calls print function
+// iterates through all paths/files and calls print function
 fn print_files(opt: &Opt) -> io::Result<()> {
     let regex = opt.paths[0].to_string();
     for path in opt.paths.iter().skip(1) {
+        // we skipped 1 because the first one is regex to match later, everything else is files
         let file = File::open(path)?;
         let mut reader = io::BufReader::new(file);
         print_lines(reader, opt)?;
@@ -67,8 +68,9 @@ fn print_files(opt: &Opt) -> io::Result<()> {
     Ok(())
 }
 
-//pushes all lines in a file onto string and calls eval function to call tokens/parser
+// pushes all lines in a file onto string and calls eval function to call tokens/parser
 fn print_lines<R: BufRead>(reader: R, opt: &Opt) -> io::Result<()> {
+
     //call eval function to process tokens/parser
     //rintln!("{}", opt.paths[0]);
     for line in reader.lines() {
@@ -86,9 +88,9 @@ pub mod nfa;
 use self::nfa::helpers::nfa_dot;
 use self::nfa::NFA;
 
-//creates parser/ tokenzer to parse or tokenize input
 fn eval(input: &str, options: &Opt) {
     if options.parse {
+        // makes a parse tree of input
         match Parser::parse(Tokenizer::new(input)) {
             Ok(statement) => {
                 println!("{:?}", statement);
@@ -111,6 +113,9 @@ fn eval(input: &str, options: &Opt) {
         println!("{}", nfa_dot(&nfa));
         std::process::exit(0);
     }
+
+    // no matter what options are chosen, make the NFA out of the given regex and test the input
+    // for accepts based on the NFA
     let nfa = NFA::from(&options.paths[0]).unwrap();
     if nfa.accepts(input) {
         println!("{}", input);
