@@ -81,8 +81,7 @@ impl NFA {
             }
 
             Match(character, state_id) => {
-                // if we reach the end of the input chars before finding the regex, then return
-                // false
+                // if we reach end of input chars before finding regex, return false
                 if chars_index == chars.len() {
                     return false;
                 }
