@@ -116,10 +116,10 @@ fn eval(input: &str, options: &Opt) {
 
     // no matter what options are chosen, make the NFA out of the given regex and test the input
     // for accepts based on the NFA
-    let mut regex = ".*".to_string();
-    regex.push_str(&options.paths[0]);
-    regex.push_str(".*");
-    let nfa = NFA::from(&regex).unwrap();
+   // let mut regex = ".*".to_string();
+    //regex.push_str(&options.paths[0]);
+    //regex.push_str(".*");
+    let nfa = NFA::from(&options.paths[0]).unwrap();
     if nfa.accepts(input) {
         println!("{}", input);
     }
