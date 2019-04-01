@@ -70,6 +70,7 @@ fn print_files(opt: &Opt) -> io::Result<()> {
 //pushes all lines in a file onto string and calls eval function to call tokens/parser
 fn print_lines<R: BufRead>(reader: R, opt: &Opt) -> io::Result<()> {
     //call eval function to process tokens/parser
+    //rintln!("{}", opt.paths[0]);
     for line in reader.lines() {
         eval(&line?, opt);
     }
