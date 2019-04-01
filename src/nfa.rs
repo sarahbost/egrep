@@ -92,7 +92,7 @@ impl NFA {
                             return self.traverse(&chars, chars_index + 1, state_id.unwrap(), true);
                         } else {
                             if has_started_nfa {
-                                return false;
+                                return self.traverse(&chars, chars_index, self.start, false);
                             }
                             return self.traverse(
                                 &chars,
