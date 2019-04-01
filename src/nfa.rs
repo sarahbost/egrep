@@ -364,4 +364,23 @@ mod public_api {
         assert_eq!(nfa.accepts("teefee"), true);
         assert_eq!(nfa.accepts("eeeeeeeee"), false);
     }
+    #[test]
+    fn test16() {
+        let nfa = NFA::from("a..b").unwrap();
+//        assert_eq!(nfa.accepts("aaaaaaaaaaaaaaaaab"), true);
+        assert_eq!(nfa.accepts("aaab"), true);
+        assert_eq!(nfa.accepts("aaaaaab"), true);
+    }
+    #[test]
+    fn test17() {
+        let nfa = NFA::from("(a|o)(p|r).*").unwrap();
+        assert_eq!(nfa.accepts("orange"), true);
+        assert_eq!(nfa.accepts("apple"), true);
+        assert_eq!(nfa.accepts("opple"), true);
+        assert_eq!(nfa.accepts("aaaaaa"), false);
+        assert_eq!(nfa.accepts("o"), false);
+        assert_eq!(nfa.accepts("aaaaaaaaaaaaaaaaaaapple"), true);
+        assert_eq!(nfa.accepts("prprprprprp"), false);
+        assert_eq!(nfa.accepts(""), false);
+    }
 }
