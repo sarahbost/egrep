@@ -49,20 +49,31 @@ impl NFA {
      * input is accepted by the input string.
      */
     pub fn accepts(&self, input: &str) -> bool {
-        //vector of chars
+        // vector of chars formed from input so that we can iterate over them in accepts()
         let input_chars = input.chars().collect();
+        // the final "false" here is a bool that will be useful later to see if the nfa has already
+        // been started being read in the input
         self.traverse(&input_chars, 0, self.start, false)
     }
 
-    pub fn traverse(&self, chars: &Vec<char>, chars_index: usize, start_state_id: StateId, has_started_nfa: bool) -> bool {
+    pub fn traverse(
+        &self,
+        chars: &Vec<char>,
+        chars_index: usize,
+        start_state_id: StateId,
+        has_started_nfa: bool,
+    ) -> bool {
+        // we are matching by what state the nfa (regex) is on in our traversal
         match &self.states[start_state_id] {
-            Start(state_id) => return self.traverse(&chars, chars_index, state_id.unwrap(), has_started_nfa),
-
+            Start(state_id) => {
+                return self.traverse(&chars, chars_index, state_id.unwrap(), has_started_nfa)
+            }
+            // start state: just traverse to the next state by moving to next state_id
             Split(lhs, rhs) => {
+                // split state: check both sides and traverse whichever one is necessary
                 if self.traverse(&chars, chars_index, lhs.unwrap(), has_started_nfa) {
                     return true;
                 }
-
                 if self.traverse(&chars, chars_index, rhs.unwrap(), has_started_nfa) {
                     return true;
                 }
@@ -70,32 +81,40 @@ impl NFA {
             }
 
             Match(character, state_id) => {
-                //if the char matches, keep going and increment index, if not it doesn't match and
-                //return false
-                // make sure to handle case where it is an exact match on last char
+                // if we reach the end of the input chars before finding the regex, then return
+                // false
                 if chars_index == chars.len() {
                     return false;
                 }
-
+                // see if the input char matches the NFA regex char that we expect
                 match character {
                     Char::Literal(c) => {
                         if c == &chars[chars_index] {
-
                             return self.traverse(&chars, chars_index + 1, state_id.unwrap(), true);
                         } else {
                             if has_started_nfa {
-                                return false; 
+                                return false;
                             }
-                            return self.traverse(&chars, chars_index + 1, start_state_id, has_started_nfa);
+                            return self.traverse(
+                                &chars,
+                                chars_index + 1,
+                                start_state_id,
+                                has_started_nfa,
+                            );
                         }
                     }
                     Char::Any => {
-                        return self.traverse(&chars, chars_index + 1, state_id.unwrap(), has_started_nfa);
+                        return self.traverse(
+                            &chars,
+                            chars_index + 1,
+                            state_id.unwrap(),
+                            has_started_nfa,
+                        );
                     }
                 };
             }
             End => {
-
+                // end state: return true because it will only get here if it's a match!
                 return true;
             }
         };
@@ -171,6 +190,7 @@ impl NFA {
      * representing it and its children.
      */
     fn gen_fragment(&mut self, ast: &AST) -> Fragment {
+        // creates fragments of an NFA based on what AST they are
         match ast {
             AST::AnyChar => {
                 let state = self.add(Match(Char::Any, None));
@@ -221,8 +241,6 @@ impl NFA {
                     ends: vec![split_state],
                 }
             }
-
-            node => panic!("Unimplemented branch of gen_fragment: {:?}", node),
         }
     }
 
@@ -321,7 +339,7 @@ mod public_api {
         let nfa = NFA::from("bl.*").unwrap();
         assert_eq!(nfa.accepts("dog"), false);
     }
-    #[test] 
+    #[test]
     fn test13() {
         let nfa = NFA::from("b|rag").unwrap();
         assert_eq!(nfa.accepts("rag"), true);
