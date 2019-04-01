@@ -291,4 +291,60 @@ mod public_api {
         let nfa = NFA::from("aut....a").unwrap();
         assert_eq!(nfa.accepts("chautanqua"), true);
     }
+    #[test]
+    fn test7() {
+        let nfa = NFA::from("etion").unwrap();
+        assert_eq!(nfa.accepts("deletion"), true);
+    }
+    #[test]
+    fn test8() {
+        let nfa = NFA::from("etion").unwrap();
+        assert_eq!(nfa.accepts("completion"), true);
+    }
+    #[test]
+    fn test9() {
+        let nfa = NFA::from("tool").unwrap();
+        assert_eq!(nfa.accepts("toadstools"), true);
+    }
+    #[test]
+    fn test10() {
+        let nfa = NFA::from("bl.*").unwrap();
+        assert_eq!(nfa.accepts("blue"), true);
+    }
+    #[test]
+    fn test11() {
+        let nfa = NFA::from("bl.*").unwrap();
+        assert_eq!(nfa.accepts("reblock"), true);
+    }
+    #[test]
+    fn test12() {
+        let nfa = NFA::from("bl.*").unwrap();
+        assert_eq!(nfa.accepts("dog"), false);
+    }
+    #[test] 
+    fn test13() {
+        let nfa = NFA::from("b|rag").unwrap();
+        assert_eq!(nfa.accepts("rag"), true);
+        assert_eq!(nfa.accepts("bag"), true);
+        assert_eq!(nfa.accepts("hag"), false);
+    }
+    #[test]
+    fn test14() {
+        let nfa = NFA::from("h|yell.*").unwrap();
+        assert_eq!(nfa.accepts("hello"), true);
+        assert_eq!(nfa.accepts("hell"), true);
+        assert_eq!(nfa.accepts("yellowed"), true);
+        assert_eq!(nfa.accepts("yell"), true);
+        assert_eq!(nfa.accepts("asdfasdfasdfhell"), true);
+        assert_eq!(nfa.accepts("bellow"), false);
+    }
+    #[test]
+    fn test15() {
+        let nfa = NFA::from("..*fee").unwrap();
+        assert_eq!(nfa.accepts("coffee"), true);
+        assert_eq!(nfa.accepts("fee"), false);
+        assert_eq!(nfa.accepts("blahcoffeeblah"), true);
+        assert_eq!(nfa.accepts("teefee"), true);
+        assert_eq!(nfa.accepts("eeeeeeeee"), false);
+    }
 }
