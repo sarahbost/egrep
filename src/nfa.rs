@@ -51,19 +51,19 @@ impl NFA {
     pub fn accepts(&self, input: &str) -> bool {
         //vector of chars
         let input_chars = input.chars().collect();
-        self.traverse(&input_chars, 0, self.start)
+        self.traverse(&input_chars, 0, self.start, false)
     }
 
-    pub fn traverse(&self, chars: &Vec<char>, chars_index: usize, start_state_id: StateId) -> bool {
+    pub fn traverse(&self, chars: &Vec<char>, chars_index: usize, start_state_id: StateId, has_started_nfa: bool) -> bool {
         match &self.states[start_state_id] {
-            Start(state_id) => return self.traverse(&chars, chars_index, state_id.unwrap()),
+            Start(state_id) => return self.traverse(&chars, chars_index, state_id.unwrap(), has_started_nfa),
 
             Split(lhs, rhs) => {
-                if self.traverse(&chars, chars_index, lhs.unwrap()) {
+                if self.traverse(&chars, chars_index, lhs.unwrap(), has_started_nfa) {
                     return true;
                 }
 
-                if self.traverse(&chars, chars_index, rhs.unwrap()) {
+                if self.traverse(&chars, chars_index, rhs.unwrap(), has_started_nfa) {
                     return true;
                 }
                 return false;
@@ -80,25 +80,23 @@ impl NFA {
                 match character {
                     Char::Literal(c) => {
                         if c == &chars[chars_index] {
-                            if (chars_index + 1 == chars.len()) {
-                                // return true;
-                            }
 
-                            return self.traverse(&chars, chars_index + 1, state_id.unwrap());
+                            return self.traverse(&chars, chars_index + 1, state_id.unwrap(), true);
                         } else {
-                            return self.traverse(&chars, chars_index + 1, start_state_id);
+                            if has_started_nfa {
+                                return false; 
+                            }
+                            return self.traverse(&chars, chars_index + 1, start_state_id, has_started_nfa);
                         }
                     }
                     Char::Any => {
-                        return self.traverse(&chars, chars_index + 1, state_id.unwrap());
+                        return self.traverse(&chars, chars_index + 1, state_id.unwrap(), has_started_nfa);
                     }
                 };
             }
             End => {
-                if chars_index == chars.len() {
-                    return true;
-                }
-                return false;
+
+                return true;
             }
         };
     }
