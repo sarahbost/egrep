@@ -57,6 +57,7 @@ impl NFA {
     pub fn traverse(&self, chars: &Vec<char>, chars_index: usize, start_state_id: StateId) -> bool {
         match &self.states[start_state_id] {
             Start(state_id) => return self.traverse(&chars, chars_index, state_id.unwrap()),
+
             Split(lhs, rhs) => {
                 if self.traverse(&chars, chars_index, lhs.unwrap()) {
                     return true;
@@ -66,33 +67,39 @@ impl NFA {
                     return true;
                 }
                 return false;
-            },
+            }
+
             Match(character, state_id) => {
                 //if the char matches, keep going and increment index, if not it doesn't match and
                 //return false
-                if chars.len() == chars_index {
+                // make sure to handle case where it is an exact match on last char
+                if chars_index == chars.len() {
                     return false;
                 }
-                // make sure to handle case where it is an exact match on last char
+
                 match character {
                     Char::Literal(c) => {
                         if c == &chars[chars_index] {
-                            return self.traverse(&chars, chars_index + 1, state_id.unwrap());                            
+                            if (chars_index + 1 == chars.len()) {
+                                // return true;
+                            }
+
+                            return self.traverse(&chars, chars_index + 1, state_id.unwrap());
                         } else {
-                            return self.traverse(&chars, chars_index, state_id.unwrap());
+                            return self.traverse(&chars, chars_index + 1, start_state_id);
                         }
-                    },
+                    }
                     Char::Any => {
                         return self.traverse(&chars, chars_index + 1, state_id.unwrap());
-                    },
+                    }
                 };
-            },
+            }
             End => {
                 if chars_index == chars.len() {
                     return true;
                 }
                 return false;
-            },
+            }
         };
     }
 }
@@ -281,5 +288,9 @@ mod public_api {
         let nfa = NFA::from("aut....a").unwrap();
         assert_eq!(nfa.accepts("asdfasdf"), false);
     }
+    #[test]
+    fn test6() {
+        let nfa = NFA::from("aut....a").unwrap();
+        assert_eq!(nfa.accepts("chautanqua"), true);
+    }
 }
-
