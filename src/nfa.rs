@@ -3,18 +3,16 @@ pub mod helpers;
 // Starter code for PS06 - thegrep
 // Add Honor Code Header and Collaborators Here
 
- /**
-  4  * thegrep - Tar Heel egrep
-  5  *
-  6  * Author(s): Sarah Bost, Shannon Goad
-  7  * ONYEN(s): sbost99, sgoad13
-  8  *
-  9  * UNC Honor Pledge: I pledge I have received no unauthorized aid
- 10  * on this assignment. I further pledge not to distribute my solution
- 11  * to this code to anyone other than the course staff and partner.
- 12  */
-
-
+/**
+ 4  * thegrep - Tar Heel egrep
+ 5  *
+ 6  * Author(s): Sarah Bost, Shannon Goad
+ 7  * ONYEN(s): sbost99, sgoad13
+ 8  *
+ 9  * UNC Honor Pledge: I pledge I have received no unauthorized aid
+10  * on this assignment. I further pledge not to distribute my solution
+11  * to this code to anyone other than the course staff and partner.
+12  */
 use self::State::*;
 use super::parser::Parser;
 use super::parser::AST;
@@ -65,14 +63,19 @@ impl NFA {
         let input_chars = input.chars().collect();
         // the final "false" here is a bool that will be useful later to see if the nfa has already
         // been started being read in the input
-        let mut counter = 0; 
+        
+        if input.len() == 0 {
+           return  self.traverse(&input_chars, 0, self.start, false);
+        }
+        
+        let mut counter = 0;
         for inp in &input_chars {
-        if self.traverse(&input_chars, counter, self.start, false) {
-            return true; 
+            if self.traverse(&input_chars, counter, self.start, false) {
+                return true;
+            }
+            counter = counter + 1;
         }
-        counter = counter + 1; 
-        }
-        return false; 
+        return false;
     }
 
     pub fn traverse(
@@ -81,7 +84,7 @@ impl NFA {
         chars_index: usize,
         start_state_id: StateId,
         has_started_nfa: bool,
-         ) -> bool {
+    ) -> bool {
         // we are matching by what state the nfa (regex) is on in our traversal
         match &self.states[start_state_id] {
             Start(state_id) => {
@@ -112,7 +115,7 @@ impl NFA {
                         } else {
                             if has_started_nfa {
                                 return self.traverse(&chars, chars_index, self.start, false);
-                            } 
+                            }
                             return self.traverse(
                                 &chars,
                                 chars_index + 1,
@@ -120,7 +123,6 @@ impl NFA {
                                 has_started_nfa,
                             );
                         }
-                        
                     }
                     Char::Any => {
                         return self.traverse(
@@ -137,9 +139,7 @@ impl NFA {
                 return true;
             }
         };
-  
     }
-     
 }
 
 /**
@@ -394,11 +394,19 @@ mod public_api {
         assert_eq!(nfa.accepts("aaaaaab"), true);
     }
 
-     #[test]
-    fn test20() { 
-        let nfa = NFA::from("aaab").unwrap(); 
+    #[test]
+    fn test20() {
+        let nfa = NFA::from("aaab").unwrap();
         assert_eq!(nfa.accepts("aaaab"), true);
     }
+
+    #[test]
+    fn test21() {
+        let nfa = NFA::from(".*").unwrap();
+        assert_eq!(nfa.accepts("bca"), true);
+        assert_eq!(nfa.accepts(""), true);
+    }
+
     #[test]
     fn test17() {
         let nfa = NFA::from("(a|o)(p|r).*").unwrap();
