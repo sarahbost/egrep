@@ -148,13 +148,19 @@ impl Add for NFA {
 
     fn add(self, rhs: NFA) -> NFA {
         let mut concat = NFA::new();
+        let left_states = self.states.clone();
         let start = concat.adds(Start(None));
         concat.start = start;
-        for s in &self.states {
-            concat.adds(s);
+        for i in 0..(&self.states.len() - 1) {
+            concat.adds(self.states[i]);
         }
         for s in &rhs.states {
-            concat.adds(&s);
+            match s {
+                State::Start(n) => { concat.adds(Start(Some(n.unwrap() + self.states.len() - 1))); },
+                State::Match(c, n) => { concat.adds(Match(*c, Some(n.unwrap() + self.states.len() - 1))); },
+                State::Split(n, m) => { concat.adds(Split(Some(n.unwrap() + self.states.len() - 1), Some(m.unwrap() + self.states.len() - 1))); },
+                State::End => { concat.adds(End); },
+            };
         }
         concat
     }
