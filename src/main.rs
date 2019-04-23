@@ -26,8 +26,8 @@ struct Opt {
     dot: bool,
     #[structopt(help = "FILES")]
     paths: Vec<String>,
-    //#[structopt(short = "g", long = "gen")]
-    //num: i64,
+    #[structopt(short = "g", long = "gen")]
+    num: f64,
 }
 
 use std::fs::File;
@@ -115,6 +115,9 @@ fn eval(input: &str, options: &Opt) {
         println!("{}", nfa_dot(&nfa));
         std::process::exit(0);
     }
+    // if options.num {
+        // this is for using that number to generate random strings that match the nfa
+    // }
 
     // no matter what options are chosen, make the NFA out of the given regex and test the input
     // for accepts based on the NFA

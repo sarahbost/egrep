@@ -18,6 +18,7 @@ use super::parser::Parser;
 use super::parser::AST;
 use super::tokenizer::Tokenizer;
 use std::iter::Peekable;
+use std::ops::Add;
 /**
  * ===== Public API =====
  */
@@ -39,7 +40,7 @@ impl NFA {
     pub fn from(regular_expression: &str) -> Result<NFA, String> {
         let mut nfa = NFA::new();
 
-        let start = nfa.add(Start(None));
+        let start = nfa.adds(Start(None));
         nfa.start = start;
 
         // Parse the Abstract Syntax Tree of the Regular Expression
@@ -48,7 +49,7 @@ impl NFA {
         let body = nfa.gen_fragment(ast);
         nfa.join(nfa.start, body.start);
 
-        let end = nfa.add(End);
+        let end = nfa.adds(End);
         nfa.join_fragment(&body, end);
 
         Ok(nfa)
@@ -142,6 +143,23 @@ impl NFA {
     }
 }
 
+impl Add for NFA {
+    type Output = Self;
+
+    fn add(self, rhs: NFA) -> NFA {
+        let mut concat = NFA::new();
+        let start = concat.adds(Start(None));
+        concat.start = start;
+        for s in &self.states {
+            concat.adds(s);
+        }
+        for s in &rhs.states {
+            concat.adds(&s);
+        }
+        concat
+    }
+}   
+
 /**
  * ===== Internal API =====
  */
@@ -200,7 +218,7 @@ impl NFA {
     /**
      * Add a state to the NFA and get its arena ID back.
      */
-    fn add(&mut self, state: State) -> StateId {
+    fn adds(&mut self, state: State) -> StateId {
         let idx = self.states.len();
         self.states.push(state);
         idx
@@ -214,14 +232,14 @@ impl NFA {
         // creates fragments of an NFA based on what AST they are
         match ast {
             AST::AnyChar => {
-                let state = self.add(Match(Char::Any, None));
+                let state = self.adds(Match(Char::Any, None));
                 Fragment {
                     start: state,
                     ends: vec![state],
                 }
             }
             AST::Char(c) => {
-                let state = self.add(Match(Char::Literal(*c), None));
+                let state = self.adds(Match(Char::Literal(*c), None));
                 Fragment {
                     start: state,
                     ends: vec![state],
@@ -242,7 +260,7 @@ impl NFA {
                 let fragment_one = self.gen_fragment(one);
                 let fragment_two = self.gen_fragment(two);
                 let split_state =
-                    self.add(Split(Some(fragment_one.start), Some(fragment_two.start)));
+                    self.adds(Split(Some(fragment_one.start), Some(fragment_two.start)));
                 let mut v = vec![];
                 v.extend(fragment_one.ends);
                 v.extend(fragment_two.ends);
@@ -253,7 +271,7 @@ impl NFA {
             }
             AST::Closure(ast) => {
                 let fragment_ast = self.gen_fragment(ast);
-                let split_state = self.add(Split(Some(fragment_ast.start), None));
+                let split_state = self.adds(Split(Some(fragment_ast.start), None));
                 self.join(split_state, fragment_ast.start);
                 self.join(fragment_ast.start, split_state);
 
