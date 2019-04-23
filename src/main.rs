@@ -26,6 +26,8 @@ struct Opt {
     dot: bool,
     #[structopt(help = "FILES")]
     paths: Vec<String>,
+    //#[structopt(short = "g", long = "gen")]
+    //num: i64,
 }
 
 use std::fs::File;
