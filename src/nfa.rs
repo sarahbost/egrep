@@ -151,21 +151,22 @@ impl Add for NFA {
     fn add(self, rhs: NFA) -> NFA {
         let mut concat = NFA::new();
         let firstlength = self.states.len() - 1;
-        let start = concat.add_state(Start(None));
-        concat.start = start;
         for i in 0..firstlength {
             match &self.states[i] {
-                State::Start(n) => { concat.add_state(Start(Some(n.unwrap() + firstlength))); },
-                State::Match(c, n) => { concat.add_state(Match(*c, Some(n.unwrap() + firstlength))); },
-                State::Split(n, m) => { concat.add_state(Split(Some(n.unwrap() + firstlength), Some(m.unwrap() + firstlength))); },
+                State::Start(n) => { 
+                    let start = concat.add_state(Start(Some(n.unwrap()))); 
+                    concat.start = start;
+                },
+                State::Match(c, n) => { concat.add_state(Match(*c, Some(n.unwrap()))); },
+                State::Split(n, m) => { concat.add_state(Split(Some(n.unwrap()), Some(m.unwrap()))); },
                 _ => {},
             };
         }
         for s in &rhs.states {
             match s {
                 State::Start(n) => {  },
-                State::Match(c, n) => { concat.add_state(Match(*c, Some(n.unwrap() + firstlength))); },
-                State::Split(n, m) => { concat.add_state(Split(Some(n.unwrap() + firstlength), Some(m.unwrap() + firstlength))); },
+                State::Match(c, n) => { concat.add_state(Match(*c, Some(n.unwrap() + firstlength - 1))); },
+                State::Split(n, m) => { concat.add_state(Split(Some(n.unwrap() + firstlength - 1), Some(m.unwrap() + firstlength - 1))); },
                 State::End => { concat.add_state(End); },
             };
         }
@@ -467,8 +468,59 @@ mod op_overload_test {
     fn optest1() {
         let nfa1 = NFA::from("a").unwrap();
         let nfa2 = NFA::from("a").unwrap();
-        println!("{:?}", nfa1.states);   
         let nfa = nfa1 + nfa2;
-          assert_eq!(nfa.accepts("ab"), true);
+        assert_eq!(nfa.accepts("ab"), false);
+    }
+    #[test]
+    fn optest2() {
+        let nfa1 = NFA::from("ri").unwrap();
+        let nfa2 = NFA::from("ha.*").unwrap();
+        let nfa = nfa1 + nfa2;
+        assert_eq!(nfa.accepts("rihanna"), true);
+    }
+    #[test]
+    fn optest3() {
+        let nfa1 = NFA::from("a|b").unwrap();
+        let nfa2 = NFA::from("c|d").unwrap();
+        let nfa = nfa1 + nfa2;
+        assert_eq!(nfa.accepts("ac"), true);
+        assert_eq!(nfa.accepts("bd"), true);
+    }
+    #[test]
+    fn optest4() {
+        let nfa1 = NFA::from("a*").unwrap();
+        let nfa2 = NFA::from("c").unwrap();
+        let nfa = nfa1 + nfa2;
+        assert_eq!(nfa.accepts("ac"), true);
+    }
+    #[test]
+    fn optest5() {
+        let nfa1 = NFA::from(".").unwrap();
+        let nfa2 = NFA::from("b").unwrap();
+        let nfa = nfa1 + nfa2;
+        assert_eq!(nfa.accepts("ab"), true);
+    }
+    #[test]
+    fn optest6() {
+        let nfa1 = NFA::from("ab(c|d)").unwrap();
+        let nfa2 = NFA::from("x(y|z)").unwrap();
+        let nfa = nfa1 + nfa2;
+        assert_eq!(nfa.accepts("abdxy"), true);
+    }
+    #[test]
+    fn optest7() {
+        let nfa1 = NFA::from("tar").unwrap();
+        let nfa2 = NFA::from("heels").unwrap();
+        let nfa = nfa1 + nfa2;
+        assert_eq!(nfa.accepts("tarheels"), true);
+    }
+    #[test]
+    fn optest8() {
+        let nfa1 = NFA::from("12.34").unwrap();
+        let nfa2 = NFA::from("ugh").unwrap();
+        let nfa = nfa1 + nfa2;
+        assert_eq!(nfa.accepts("1234"), false);
+        assert_eq!(nfa.accepts("12p34ugh"), true);
+        assert_eq!(nfa.accepts("12.34poop ugh"), false);
     }
 }
