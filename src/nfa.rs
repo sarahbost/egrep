@@ -40,7 +40,7 @@ impl NFA {
     pub fn from(regular_expression: &str) -> Result<NFA, String> {
         let mut nfa = NFA::new();
 
-        let start = nfa.adds(Start(None));
+        let start = nfa.add_state(Start(None));
         nfa.start = start;
 
         // Parse the Abstract Syntax Tree of the Regular Expression
@@ -49,7 +49,7 @@ impl NFA {
         let body = nfa.gen_fragment(ast);
         nfa.join(nfa.start, body.start);
 
-        let end = nfa.adds(End);
+        let end = nfa.add_state(End);
         nfa.join_fragment(&body, end);
 
         Ok(nfa)
@@ -148,18 +148,23 @@ impl Add for NFA {
 
     fn add(self, rhs: NFA) -> NFA {
         let mut concat = NFA::new();
-        let left_states = self.states.clone();
-        let start = concat.adds(Start(None));
+        let firstlength = self.states.len() - 1;
+        let start = concat.add_state(Start(None));
         concat.start = start;
-        for i in 0..(&self.states.len() - 1) {
-            concat.adds(self.states[i]);
+        for i in 0..firstlength {
+            match &self.states[i] {
+                State::Start(n) => { concat.add_state(Start(Some(n.unwrap() + firstlength))); },
+                State::Match(c, n) => { concat.add_state(Match(*c, Some(n.unwrap() + firstlength))); },
+                State::Split(n, m) => { concat.add_state(Split(Some(n.unwrap() + firstlength), Some(m.unwrap() + firstlength))); },
+                _ => {},
+            };
         }
         for s in &rhs.states {
             match s {
-                State::Start(n) => { concat.adds(Start(Some(n.unwrap() + self.states.len() - 1))); },
-                State::Match(c, n) => { concat.adds(Match(*c, Some(n.unwrap() + self.states.len() - 1))); },
-                State::Split(n, m) => { concat.adds(Split(Some(n.unwrap() + self.states.len() - 1), Some(m.unwrap() + self.states.len() - 1))); },
-                State::End => { concat.adds(End); },
+                State::Start(n) => {  },
+                State::Match(c, n) => { concat.add_state(Match(*c, Some(n.unwrap() + firstlength))); },
+                State::Split(n, m) => { concat.add_state(Split(Some(n.unwrap() + firstlength), Some(m.unwrap() + firstlength))); },
+                State::End => { concat.add_state(End); },
             };
         }
         concat
@@ -190,7 +195,7 @@ enum State {
  * Chars are the matching label of a non-epsilon edge in the
  * transition diagram representation of the NFA.
  */
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 enum Char {
     Literal(char),
     Any,
@@ -224,7 +229,7 @@ impl NFA {
     /**
      * Add a state to the NFA and get its arena ID back.
      */
-    fn adds(&mut self, state: State) -> StateId {
+    fn add_state(&mut self, state: State) -> StateId {
         let idx = self.states.len();
         self.states.push(state);
         idx
@@ -238,14 +243,14 @@ impl NFA {
         // creates fragments of an NFA based on what AST they are
         match ast {
             AST::AnyChar => {
-                let state = self.adds(Match(Char::Any, None));
+                let state = self.add_state(Match(Char::Any, None));
                 Fragment {
                     start: state,
                     ends: vec![state],
                 }
             }
             AST::Char(c) => {
-                let state = self.adds(Match(Char::Literal(*c), None));
+                let state = self.add_state(Match(Char::Literal(*c), None));
                 Fragment {
                     start: state,
                     ends: vec![state],
@@ -266,7 +271,7 @@ impl NFA {
                 let fragment_one = self.gen_fragment(one);
                 let fragment_two = self.gen_fragment(two);
                 let split_state =
-                    self.adds(Split(Some(fragment_one.start), Some(fragment_two.start)));
+                    self.add_state(Split(Some(fragment_one.start), Some(fragment_two.start)));
                 let mut v = vec![];
                 v.extend(fragment_one.ends);
                 v.extend(fragment_two.ends);
@@ -277,7 +282,7 @@ impl NFA {
             }
             AST::Closure(ast) => {
                 let fragment_ast = self.gen_fragment(ast);
-                let split_state = self.adds(Split(Some(fragment_ast.start), None));
+                let split_state = self.add_state(Split(Some(fragment_ast.start), None));
                 self.join(split_state, fragment_ast.start);
                 self.join(fragment_ast.start, split_state);
 
@@ -443,4 +448,16 @@ mod public_api {
         assert_eq!(nfa.accepts("prprprprprp"), false);
         assert_eq!(nfa.accepts(""), false);
     }
+}
+#[cfg(test)]
+mod op_overload_test {
+    use super::*;
+
+    #[test]
+    fn optest0() {
+        let nfa1 = NFA::from("a").unwrap();
+        let nfa2 = NFA::from("b").unwrap();
+        let nfa = nfa1 + nfa2;
+        assert_eq!(nfa.accepts("ab"), true);
+    }   
 }
