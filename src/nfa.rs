@@ -87,7 +87,7 @@ impl NFA {
         start_state_id: StateId,
         has_started_nfa: bool,
     ) -> bool {
-        println!("{:?}", self.states); 
+//        println!("{:?}", self.states); 
         // we are matching by what state the nfa (regex) is on in our traversal
         match &self.states[start_state_id] {
             Start(state_id) => {
@@ -290,6 +290,17 @@ impl NFA {
 
                 Fragment {
                     start: split_state,
+                    ends: vec![split_state],
+                }
+            }
+            AST::OneOrMore(ast) => {
+                let fragment_ast = self.gen_fragment(ast);
+                let fragment_repeat = self.gen_fragment(ast);
+                let split_state = self.add_state(Split(Some(fragment_repeat.start), None));
+                self.join_fragment(&fragment_ast, fragment_repeat.start);
+                
+                Fragment {
+                    start: fragment_ast.start,
                     ends: vec![split_state],
                 }
             }

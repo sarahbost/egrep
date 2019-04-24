@@ -20,6 +20,7 @@ pub enum AST {
     Closure(Box<AST>),
     AnyChar,
     Char(char),
+    OneOrMore(Box<AST>),
 }
 
 // Helper factory functions for building AST
@@ -33,6 +34,10 @@ pub fn build_char(value: char) -> AST {
 
 pub fn build_catenation(first: AST, second: AST) -> AST {
     AST::Catenation(Box::new(first), Box::new(second))
+}
+
+pub fn build_one_or_more(ast: AST) -> AST{
+    AST::OneOrMore(Box::new(ast))
 }
 
 pub fn build_closure(closure: AST) -> AST {
@@ -207,17 +212,26 @@ impl<'tokens> Parser<'tokens> {
 
     fn closure(&mut self) -> Result<AST, String> {
         // closure receives input from cat()
-        let first_term = self.atom()?;
+        let first_term = self.kleeneplus()?;
         if self.peek_kleene_star().is_some() {
             let kleene_star = self.take_next_token();
             return Ok(build_closure(first_term)); // if there's a kleene star, make a closure
         }
         Ok(first_term) // if no kleene star, just return first term wrapped in result
     }
+    
+    fn kleeneplus(&mut self) -> Result<AST, String> {
+        let first_term = self.atom()?; 
+        if self.peek_kleene_plus().is_some() {
+            let kleene_plus = self.take_next_token(); 
+            return Ok(build_one_or_more(first_term));
+        }
+        Ok(first_term)
+    }
 
     fn cat(&mut self) -> Result<AST, String> {
         // this is somewhat the third stage of parsing, because maybe_regex maps here
-        let first_term = self.closure()?; // see if first term is a closure AST
+        let first_term = self.closure()?; // see if first term is a closure AST 
         let second_term = self.maybe_cat(); // check and see if second term is an AST also
         if second_term.is_ok() {
             return Ok(build_catenation(first_term, second_term.unwrap())); // catenate first and second terms
@@ -278,6 +292,15 @@ impl<'tokens> Parser<'tokens> {
             None
         }
     }
+
+    fn peek_kleene_plus(&mut self) -> Option<char> {
+        if let Some(Token::KleenePlus) = self.tokens.peek() {
+            Some('+')
+        } else {
+            None 
+        }
+    }
+
 
     // function to peek if the next char is a union bar
     fn peek_union_bar(&mut self) -> Option<char> {

@@ -21,6 +21,7 @@ pub enum Token {
     UnionBar,
     AnyChar,
     KleeneStar,
+    KleenePlus,
     LParen,
     RParen,
 }
@@ -61,6 +62,7 @@ impl<'str> Iterator for Tokenizer<'str> {
                 '*' => self.lex_kleene_star(),
                 '.' => self.lex_any_char(),
                 '(' | ')' => self.lex_paren(),
+                '+' => self.lex_kleene_plus(), 
                 _ => self.lex_char(),
                 // these match options should allow whitespace to be recognized as a char token
             })
@@ -98,6 +100,14 @@ impl<'str> Tokenizer<'str> {
         let c = self.chars.next().unwrap();
         match c {
             '*' => Token::KleeneStar,
+            _ => panic!("Unexpected char"),
+        }
+    }
+
+    fn lex_kleene_plus(&mut self) -> Token {
+        let c = self.chars.next().unwrap();
+        match c {
+            '+' => Token::KleenePlus, 
             _ => panic!("Unexpected char"),
         }
     }
