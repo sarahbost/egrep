@@ -1,5 +1,6 @@
 pub mod helpers;
 
+
 // Starter code for PS06 - thegrep
 // Add Honor Code Header and Collaborators Here
 
@@ -86,6 +87,7 @@ impl NFA {
         start_state_id: StateId,
         has_started_nfa: bool,
     ) -> bool {
+        println!("{:?}", self.states); 
         // we are matching by what state the nfa (regex) is on in our traversal
         match &self.states[start_state_id] {
             Start(state_id) => {
@@ -460,4 +462,13 @@ mod op_overload_test {
         let nfa = nfa1 + nfa2;
         assert_eq!(nfa.accepts("ab"), true);
     }   
+
+    #[test] 
+    fn optest1() {
+        let nfa1 = NFA::from("a").unwrap();
+        let nfa2 = NFA::from("a").unwrap();
+        println!("{:?}", nfa1.states);   
+        let nfa = nfa1 + nfa2;
+          assert_eq!(nfa.accepts("ab"), true);
+    }
 }
