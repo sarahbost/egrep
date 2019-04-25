@@ -23,25 +23,21 @@ struct Opt {
     tokens: bool,
     #[structopt(short = "d", long = "dot")]
     dot: bool,
+    #[structopt(short = "g", long = "gen")]
+    num: Option<i32>,
     #[structopt(help = "FILES")]
     paths: Vec<String>,
-    #[structopt(short = "g", long = "gen")]
-    num: f64, 
-    //    #[structopt(short = "g", long = "gen")]
-    //    num: 64,
 }
 
-
-
+use rand::prelude::*;
 use std::fs::File;
 use std::io;
 use std::io::BufRead;
 use std::io::Read;
-use rand::prelude::*; 
 
 fn main() {
     let opt = Opt::from_args();
-//    println!("{:?}", opt);
+    //    println!("{:?}", opt);
     // if arguments are passed in read from file/paths otherwise evaluate input from std::in
     if opt.parse {
         // makes a parse tree of input
@@ -65,19 +61,21 @@ fn main() {
         let nfa = NFA::from(&opt.paths[0]).unwrap();
         println!("{}", nfa_dot(&nfa));
         std::process::exit(0);
-    } else if opt.num > 0.0 { 
-      //  println!("{:?}", opt.paths[0]);
-         let nfa = NFA::from(&opt.paths[0]).unwrap();
-        let mut expression_count = 0.0; 
-
-        while expression_count < opt.num {
-            println!("{}", nfa.random_regex()); 
-             expression_count = expression_count + 1.0;
+    }
+    if let Some(num) = opt.num {
+        if (opt.paths.len() < 1) {
+            print_stdin(&opt);
         }
-            
-         }
-        
 
+        println!("{:?}", opt.paths[0]);
+        let nfa = NFA::from(&opt.paths[0]).unwrap();
+        let mut expression_count = 0;
+
+        while expression_count < num {
+            println!("{}", nfa.random_regex());
+            expression_count = expression_count + 1;
+        }
+    }
 
     let result = if opt.paths.len() > 1 {
         print_files(&opt)
@@ -132,7 +130,7 @@ use self::nfa::helpers::nfa_dot;
 use self::nfa::NFA;
 
 fn eval(input: &str, options: &Opt) {
-//    println!("{:?}", options);
+    //    println!("{:?}", options);
     if options.parse {
         // makes a parse tree of input
         match Parser::parse(Tokenizer::new(input)) {
@@ -143,7 +141,7 @@ fn eval(input: &str, options: &Opt) {
         }
         print!("\n");
     } else if options.tokens {
-  //      println!("yes");
+        //      println!("yes");
         // create a new tokenizer and cycle through tokens
         let mut tokens = Tokenizer::new(input);
         while let Some(token) = tokens.next() {
@@ -156,6 +154,18 @@ fn eval(input: &str, options: &Opt) {
         println!("{}", nfa_dot(&nfa));
         std::process::exit(0);
     }
+    // else if let Some(options.num)> 0 {
+    //      let nfa = NFA::from(input).unwrap();
+    //     let mut expression_count = 0;
+    //
+    //     if let Some(num) = option.num {
+    //     while expression_count < num {
+    //         println!("{}", nfa.random_regex());
+    //          expression_count = expression_count + 1;
+    //     }
+    //    }
+    // }
+
     // if options.num {
     // this is for using that number to generate random strings that match the nfa
     // }
