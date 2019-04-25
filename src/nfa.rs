@@ -311,11 +311,13 @@ impl NFA {
                 }
             }
             AST::OneOrMore(ast) => {
-                let fragment_ast = self.gen_fragment(ast);
-                let fragment_repeat = self.gen_fragment(ast);
-                let split_state = self.add_state(Split(Some(fragment_repeat.start), None));
-                self.join_fragment(&fragment_ast, fragment_repeat.start);
-                
+                //gets first regex
+                let fragment_ast = self.gen_fragment(&ast);
+                ////gets second regex 
+                //let mut fragment_repeat = self.gen_fragment(&ast);
+                let split_state = self.add_state(Split(Some(fragment_ast.start), None));
+                self.join_fragment(&fragment_ast, split_state);
+
                 Fragment {
                     start: fragment_ast.start,
                     ends: vec![split_state],

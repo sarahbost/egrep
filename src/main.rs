@@ -36,14 +36,35 @@ use std::io::Read;
 
 fn main() {
     let opt = Opt::from_args();
-    println!("{:?}", opt);
+//    println!("{:?}", opt);
     // if arguments are passed in read from file/paths otherwise evaluate input from std::in
+    if opt.parse {
+        // makes a parse tree of input
+        match Parser::parse(Tokenizer::new(&opt.paths[0])) {
+            Ok(statement) => {
+                println!("{:?}", statement);
+            }
+            Err(msg) => eprintln!("thegrep: {}", msg),
+        }
+        print!("\n");
+    } else if opt.tokens {
+        println!("yes");
+        // create a new tokenizer and cycle through tokens
+        let mut tokens = Tokenizer::new(&opt.paths[0]);
+        while let Some(token) = tokens.next() {
+            println!("{:?}", token);
+        }
+        print!("\n");
+    } else if opt.dot {
+        // push output to dot nfa representation
+        let nfa = NFA::from(&opt.paths[0]).unwrap();
+        println!("{}", nfa_dot(&nfa));
+        std::process::exit(0);
+    }
 
     let result = if opt.paths.len() > 1 {
-        println!("printfiles");
         print_files(&opt)
     } else {
-        println!("printstdin");
         print_stdin(&opt)
     };
 
@@ -55,7 +76,6 @@ fn main() {
 
 // processes input and calls print function
 fn print_stdin(opt: &Opt) -> io::Result<()> {
-    println!("stdin function");
     let stdin = io::stdin();
     let reader = stdin.lock();
     print_lines(reader, opt)
@@ -63,7 +83,6 @@ fn print_stdin(opt: &Opt) -> io::Result<()> {
 
 // iterates through all paths/files and calls print function
 fn print_files(opt: &Opt) -> io::Result<()> {
-    println!("printfiles function");
     let regex = opt.paths[0].to_string();
     //    Ok(eval(&regex, opt))
     for path in opt.paths.iter().skip(1) {
@@ -71,7 +90,6 @@ fn print_files(opt: &Opt) -> io::Result<()> {
         // we skipped 1 because the first one is regex to match later, everything else is files
         let file = File::open(path)?;
         let mut reader = io::BufReader::new(file);
-        println!("printfiles function lines");
         print_lines(reader, opt)?;
     }
     Ok(())
@@ -97,7 +115,7 @@ use self::nfa::helpers::nfa_dot;
 use self::nfa::NFA;
 
 fn eval(input: &str, options: &Opt) {
-    println!("{:?}", options);
+//    println!("{:?}", options);
     if options.parse {
         // makes a parse tree of input
         match Parser::parse(Tokenizer::new(input)) {
@@ -108,7 +126,7 @@ fn eval(input: &str, options: &Opt) {
         }
         print!("\n");
     } else if options.tokens {
-        println!("yes");
+  //      println!("yes");
         // create a new tokenizer and cycle through tokens
         let mut tokens = Tokenizer::new(input);
         while let Some(token) = tokens.next() {
