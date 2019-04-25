@@ -20,6 +20,9 @@ use super::parser::AST;
 use super::tokenizer::Tokenizer;
 use std::iter::Peekable;
 use std::ops::Add;
+use rand::prelude::*;
+use rand::distributions::Alphanumeric; 
+
 /**
  * ===== Public API =====
  */
@@ -54,6 +57,49 @@ impl NFA {
         nfa.join_fragment(&body, end);
 
         Ok(nfa)
+    }
+
+    pub fn random_regex(&self) -> String {
+        let mut ran: String = "".to_string();  
+        self.random_regex_traverse(self.start, ran)
+    }
+
+    pub fn random_regex_traverse( &self, position: StateId, mut ran: String) -> String {
+        
+        match &self.states[position] {
+            Start(state_id) => {
+                self.random_regex_traverse(state_id.unwrap(), ran) 
+
+            }
+            Split(lhs, rhs) => {
+ let mut rng = rand::thread_rng();
+ let direction: bool = rng.gen(); 
+
+                if direction {
+                    return self.random_regex_traverse(lhs.unwrap(), ran); 
+                } else {
+                    return self.random_regex_traverse(rhs.unwrap(), ran); 
+                }
+            }
+            Match(character, state_id) => {
+                match &character {
+                    Char::Any => {
+                        let mut rng = rand::thread_rng();
+                        println!("anychar"); 
+                        let ch: char = rng.gen(); 
+                        ran.push(ch); 
+                    }, 
+                    Char::Literal(ch)=> {
+                        ran.push(*ch);
+                    },
+                }
+                self.random_regex_traverse(state_id.unwrap(), ran) 
+            }
+            End => {
+                return ran; 
+            }
+        }
+    
     }
 
     /**
