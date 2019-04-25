@@ -198,7 +198,7 @@ impl Add for NFA {
         let mut concat = NFA::new();
         let firstlength = self.states.len() - 1;
         let mut lhs_end = firstlength;
-        let mut rhs_start = 0;
+        let mut rhs_start = firstlength - 1;
         for i in 0..firstlength {
             match &self.states[i] {
                 State::Start(n) => { 
@@ -208,12 +208,11 @@ impl Add for NFA {
                 State::Match(c, n) => { concat.add_state(Match(*c, Some(n.unwrap()))); },
                 State::Split(n, m) => { concat.add_state(Split(Some(n.unwrap()), Some(m.unwrap()))); },
                 State::End => { lhs_end = i; },
-                _ => {},
             };
         }
         for s in &rhs.states {
             match s {
-                State::Start(n) => { rhs_start = n.unwrap();  },
+                State::Start(n) => { rhs_start = n.unwrap() + rhs_start - 1; },
                 State::Match(c, n) => { concat.add_state(Match(*c, Some(n.unwrap() + firstlength - 1))); },
                 State::Split(n, m) => { concat.add_state(Split(Some(n.unwrap() + firstlength - 1), Some(m.unwrap() + firstlength - 1))); },
                 State::End => { concat.add_state(End); },
@@ -222,16 +221,17 @@ impl Add for NFA {
         for i in 0..concat.states.len() {
             match &concat.states[i] {
                 State::Match(c, n) => { 
-                    if n.unwrap() == lhs_end { concat.states[i] = Match(*c, Some(rhs_start)); }
+                    if n.unwrap() == lhs_end { concat.states[i] = Match(*c, Some(rhs_start + 1)); }
                 },
                 State::Split(n, m) => {
                     if n.unwrap() == lhs_end && m.unwrap() == lhs_end { concat.states[i] = Split(Some(rhs_start), Some(rhs_start)); }
-                    else if m.unwrap() == lhs_end { concat.states[i] = Split(*n, Some(rhs_start)); }
-                    else if n.unwrap() == lhs_end { concat.states[i] = Split(Some(rhs_start), *m); }
+                    // else if m.unwrap() == lhs_end { concat.states[i] = Split(*n, Some(rhs_start + 1)); }
+                    // else if n.unwrap() == lhs_end { concat.states[i] = Split(Some(rhs_start + 1), *m); }
                 },
                 _ => { },
             }
         }
+        println!("{:?}", concat.states);
         concat
     }
 }   
@@ -544,6 +544,8 @@ mod op_overload_test {
         let nfa1 = NFA::from("a").unwrap();
         let nfa2 = NFA::from("a").unwrap();
         let nfa = nfa1 + nfa2;
+        assert_eq!(nfa.accepts("mmmmmmaaaaaa"), true);
+        assert_eq!(nfa.accepts("jaja"), false);
         assert_eq!(nfa.accepts("ab"), false);
     }
     #[test]
@@ -567,6 +569,9 @@ mod op_overload_test {
         let nfa2 = NFA::from("c").unwrap();
         let nfa = nfa1 + nfa2;
         assert_eq!(nfa.accepts("ac"), true);
+        assert_eq!(nfa.accepts("aaaaaaac"), true);
+        assert_eq!(nfa.accepts("c"), true);
+        assert_eq!(nfa.accepts("bbbb"), false);
     }
     #[test]
     fn optest5() {
@@ -574,6 +579,8 @@ mod op_overload_test {
         let nfa2 = NFA::from("b").unwrap();
         let nfa = nfa1 + nfa2;
         assert_eq!(nfa.accepts("ab"), true);
+        assert_eq!(nfa.accepts("bumblebee"), true);
+        assert_eq!(nfa.accepts("bear"), false);
     }
     #[test]
     fn optest6() {
@@ -581,6 +588,8 @@ mod op_overload_test {
         let nfa2 = NFA::from("x(y|z)").unwrap();
         let nfa = nfa1 + nfa2;
         assert_eq!(nfa.accepts("abdxy"), true);
+        assert_eq!(nfa.accepts("abcxy"), true);
+        assert_eq!(nfa.accepts("abcxz"), true);
     }
     #[test]
     fn optest7() {
@@ -588,6 +597,9 @@ mod op_overload_test {
         let nfa2 = NFA::from("heels").unwrap();
         let nfa = nfa1 + nfa2;
         assert_eq!(nfa.accepts("tarheels"), true);
+        assert_eq!(nfa.accepts("ttttttttarheelsssssss"), true);
+        assert_eq!(nfa.accepts("tarpoopheels"), false);
+        assert_eq!(nfa.accepts("tar*heels"), false);
     }
     #[test]
     fn optest8() {
@@ -597,5 +609,23 @@ mod op_overload_test {
         assert_eq!(nfa.accepts("1234"), false);
         assert_eq!(nfa.accepts("12p34ugh"), true);
         assert_eq!(nfa.accepts("12.34poop ugh"), false);
+    }
+    #[test]
+    fn optest9() {
+        let nfa1 = NFA::from("(taa*r)|(hh*eelss*)").unwrap();
+        let nfa2 = NFA::from("(poo*p)|(yee*s.)").unwrap();
+        let nfa = nfa1 + nfa2;
+        assert_eq!(nfa.accepts("taaaaaaaryeeeeees0"), true);
+        assert_eq!(nfa.accepts("taaaaaaarpooooooop"), true);
+        assert_eq!(nfa.accepts("hhhhheelssspooooop"), true);
+        assert_eq!(nfa.accepts("heelspooooop"), true);
+    }
+    #[test]
+    fn optest10() {
+        let nfa1 = NFA::from(".*").unwrap();
+        let nfa2 = NFA::from(".*").unwrap();
+        let nfa = nfa1 + nfa2;
+        assert_eq!(nfa.accepts("a"), true);
+        assert_eq!(nfa.accepts(""), true);
     }
 }
