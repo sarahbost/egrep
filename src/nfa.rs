@@ -14,6 +14,8 @@ pub mod helpers;
 10  * on this assignment. I further pledge not to distribute my solution
 11  * to this code to anyone other than the course staff and partner.
 12  */
+extern crate rand; 
+
 use self::State::*;
 use super::parser::Parser;
 use super::parser::AST;
@@ -72,8 +74,9 @@ impl NFA {
 
             }
             Split(lhs, rhs) => {
- let mut rng = rand::thread_rng();
- let direction: bool = rng.gen(); 
+     let mut rng = rand::thread_rng();
+     let direction: bool = rng.gen(); 
+ 
 
                 if direction {
                     return self.random_regex_traverse(lhs.unwrap(), ran); 
@@ -84,9 +87,9 @@ impl NFA {
             Match(character, state_id) => {
                 match &character {
                     Char::Any => {
-                        let mut rng = rand::thread_rng();
-                        println!("anychar"); 
-                        let ch: char = rng.gen(); 
+                        //let rand_string = thread_rng().sample_iter(&Alphanumeric).take(30).collect();
+                        let mut random = rand::thread_rng(); 
+                        let ch: u32 = random.gen(); 
                         ran.push(ch); 
                     }, 
                     Char::Literal(ch)=> {
