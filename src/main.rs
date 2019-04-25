@@ -71,7 +71,7 @@ fn main() {
         let mut expression_count = 0.0; 
 
         while expression_count < opt.num {
-            println!("{:?}", nfa.random_regex()); 
+            println!("{}", nfa.random_regex()); 
              expression_count = expression_count + 1.0;
         }
             
