@@ -25,8 +25,8 @@ struct Opt {
     dot: bool,
     #[structopt(help = "FILES")]
     paths: Vec<String>,
-//    #[structopt(short = "g", long = "gen")]
-//    num: f64,
+    //    #[structopt(short = "g", long = "gen")]
+    //    num: f64,
 }
 
 use std::fs::File;
@@ -36,12 +36,12 @@ use std::io::Read;
 
 fn main() {
     let opt = Opt::from_args();
-
+    println!("{:?}", opt);
     // if arguments are passed in read from file/paths otherwise evaluate input from std::in
-    
-    let result = if opt.paths.len() > 0 {
+
+    let result = if opt.paths.len() > 1 {
         println!("printfiles");
-       print_files(&opt)
+        print_files(&opt)
     } else {
         println!("printstdin");
         print_stdin(&opt)
@@ -65,9 +65,9 @@ fn print_stdin(opt: &Opt) -> io::Result<()> {
 fn print_files(opt: &Opt) -> io::Result<()> {
     println!("printfiles function");
     let regex = opt.paths[0].to_string();
-//    Ok(eval(&regex, opt)) 
-    for path in opt.paths.iter() {
-        println!("{:?}", path); 
+    //    Ok(eval(&regex, opt))
+    for path in opt.paths.iter().skip(1) {
+        println!("{:?}", path);
         // we skipped 1 because the first one is regex to match later, everything else is files
         let file = File::open(path)?;
         let mut reader = io::BufReader::new(file);
@@ -79,11 +79,9 @@ fn print_files(opt: &Opt) -> io::Result<()> {
 
 // pushes all lines in a file onto string and calls eval function to call tokens/parser
 fn print_lines<R: BufRead>(reader: R, opt: &Opt) -> io::Result<()> {
-
     //call eval function to process tokens/parser
     //rintln!("{}", opt.paths[0]);
     for line in reader.lines() {
-        println!("printlines");
         eval(&line?, opt);
     }
     Ok(())
@@ -99,7 +97,7 @@ use self::nfa::helpers::nfa_dot;
 use self::nfa::NFA;
 
 fn eval(input: &str, options: &Opt) {
-    println!("eval");
+    println!("{:?}", options);
     if options.parse {
         // makes a parse tree of input
         match Parser::parse(Tokenizer::new(input)) {
@@ -109,34 +107,32 @@ fn eval(input: &str, options: &Opt) {
             Err(msg) => eprintln!("thegrep: {}", msg),
         }
         print!("\n");
-    }
-    else if options.tokens {
-         println!("yes");
+    } else if options.tokens {
+        println!("yes");
         // create a new tokenizer and cycle through tokens
         let mut tokens = Tokenizer::new(input);
         while let Some(token) = tokens.next() {
             println!("{:?}", token);
         }
         print!("\n");
-    }
-    else if options.dot {
+    } else if options.dot {
         // push output to dot nfa representation
         let nfa = NFA::from(input).unwrap();
         println!("{}", nfa_dot(&nfa));
         std::process::exit(0);
     }
     // if options.num {
-        // this is for using that number to generate random strings that match the nfa
+    // this is for using that number to generate random strings that match the nfa
     // }
-else {
-    // no matter what options are chosen, make the NFA out of the given regex and test the input
-    // for accepts based on the NFA
-   // let mut regex = ".*".to_string();
-    //regex.push_str(&options.paths[0]);
-    //regex.push_str(".*");
-     let nfa = NFA::from(&options.paths[0]).unwrap();
+    else {
+        // no matter what options are chosen, make the NFA out of the given regex and test the input
+        // for accepts based on the NFA
+        // let mut regex = ".*".to_string();
+        //regex.push_str(&options.paths[0]);
+        //regex.push_str(".*");
+        let nfa = NFA::from(&options.paths[0]).unwrap();
         if nfa.accepts(input) {
-        println!("{}", input);
+            println!("{}", input);
+        }
     }
-}
 }
