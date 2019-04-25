@@ -25,14 +25,19 @@ struct Opt {
     dot: bool,
     #[structopt(help = "FILES")]
     paths: Vec<String>,
+    #[structopt(short = "g", long = "gen")]
+    num: f64, 
     //    #[structopt(short = "g", long = "gen")]
-    //    num: f64,
+    //    num: 64,
 }
+
+
 
 use std::fs::File;
 use std::io;
 use std::io::BufRead;
 use std::io::Read;
+use rand::prelude::*; 
 
 fn main() {
     let opt = Opt::from_args();
@@ -60,7 +65,19 @@ fn main() {
         let nfa = NFA::from(&opt.paths[0]).unwrap();
         println!("{}", nfa_dot(&nfa));
         std::process::exit(0);
-    }
+    } else if opt.num > 0.0 { 
+      //  println!("{:?}", opt.paths[0]);
+         let nfa = NFA::from(&opt.paths[0]).unwrap();
+        let mut expression_count = 0.0; 
+
+        while expression_count < opt.num {
+            println!("{:?}", nfa.random_regex()); 
+             expression_count = expression_count + 1.0;
+        }
+            
+         }
+        
+
 
     let result = if opt.paths.len() > 1 {
         print_files(&opt)
