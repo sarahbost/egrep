@@ -90,7 +90,7 @@ impl NFA {
                         //let rand_string = thread_rng().sample_iter(&Alphanumeric).take(30).collect();
                         let mut random = rand::thread_rng(); 
                         let ch: u32 = random.gen(); 
-                        ran.push(ch); 
+//                        ran.push(ch); 
                     }, 
                     Char::Literal(ch)=> {
                         ran.push(*ch);
