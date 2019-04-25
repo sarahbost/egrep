@@ -24,6 +24,7 @@ use std::iter::Peekable;
 use std::ops::Add;
 use rand::prelude::*;
 use rand::distributions::Alphanumeric; 
+use std::iter; 
 
 /**
  * ===== Public API =====
@@ -89,7 +90,12 @@ impl NFA {
                     Char::Any => {
                         //let rand_string = thread_rng().sample_iter(&Alphanumeric).take(30).collect();
                         let mut random = rand::thread_rng(); 
-                        let ch: u32 = random.gen();                     }, 
+                        let chars: String = iter::repeat(())
+                            .map(|()| random.sample(Alphanumeric))
+                            .take(1)
+                            .collect();
+                        ran.push_str(&chars);
+                    }, 
                     Char::Literal(ch)=> {
                         ran.push(*ch);
                     },
