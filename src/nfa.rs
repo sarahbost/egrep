@@ -90,7 +90,7 @@ impl NFA {
                         //let rand_string = thread_rng().sample_iter(&Alphanumeric).take(30).collect();
                         let mut random = rand::thread_rng(); 
                         let ch: u32 = random.gen(); 
-                        ran.push(ch); 
+                        ran.push('c'); 
                     }, 
                     Char::Literal(ch)=> {
                         ran.push(*ch);
@@ -228,8 +228,8 @@ impl Add for NFA {
                 },
                 State::Split(n, m) => {
                     if n.unwrap() == lhs_end && m.unwrap() == lhs_end { concat.states[i] = Split(Some(rhs_start), Some(rhs_start)); }
-                    // else if m.unwrap() == lhs_end { concat.states[i] = Split(*n, Some(rhs_start + 1)); }
-                    // else if n.unwrap() == lhs_end { concat.states[i] = Split(Some(rhs_start + 1), *m); }
+                     else if m.unwrap() == lhs_end { concat.states[i] = Split(*n, Some(rhs_start + 1)); }
+                   //else if n.unwrap() == lhs_end { concat.states[i] = Split(Some(rhs_start + 1), *m); }
                 },
                 _ => { },
             }
@@ -630,5 +630,13 @@ mod op_overload_test {
         let nfa = nfa1 + nfa2;
         assert_eq!(nfa.accepts("a"), true);
         assert_eq!(nfa.accepts(""), true);
+    }
+    #[test]
+    fn optest11() {
+        let nfa1 = NFA::from("a").unwrap();
+        let nfa2 = NFA::from("b").unwrap();
+        let nfa3 = NFA::from("c").unwrap();
+        let nfa = nfa1 + nfa2 + nfa3;
+        assert_eq!(nfa.accepts("abc"), true);
     }
 }
