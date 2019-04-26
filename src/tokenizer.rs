@@ -103,7 +103,8 @@ impl<'str> Tokenizer<'str> {
             _ => panic!("Unexpected char"),
         }
     }
-
+    
+    //consumers kleene plus and returns KleenePlus token 
     fn lex_kleene_plus(&mut self) -> Token {
         let c = self.chars.next().unwrap();
         match c {
