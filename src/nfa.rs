@@ -62,11 +62,13 @@ impl NFA {
         Ok(nfa)
     }
 
+    // generates a random String accepted by a regex
     pub fn random_regex(&self) -> String {
         let mut ran: String = "".to_string();  
         self.random_regex_traverse(self.start, ran)
     }
 
+    // helper function for generating a random String accepted by a regex, traverses the regex
     pub fn random_regex_traverse( &self, position: StateId, mut ran: String) -> String {
         
         match &self.states[position] {
@@ -198,14 +200,20 @@ impl NFA {
     }
 }
 
+
+// operator overloading '+' for NFA
 impl Add for NFA {
     type Output = Self;
 
+    // add takes in a lhs of self and an NFA rhs
     fn add(self, rhs: NFA) -> NFA {
         let mut concat = NFA::new();
+        // firstlength is a number we use for lots of upcoming arithmetic, based on the length of
+        // lhs
         let firstlength = self.states.len() - 1;
         let mut lhs_end = firstlength;
         let mut rhs_start = firstlength - 1;
+        // this for loop loops through the lhs and adds those states to concat NFA to be returned
         for i in 0..firstlength {
             match &self.states[i] {
                 State::Start(n) => { 
@@ -217,6 +225,7 @@ impl Add for NFA {
                 State::End => { lhs_end = i; },
             };
         }
+        // this for loop loops through the rhs states and adds them to concat 
         for s in &rhs.states {
             match s {
                 State::Start(n) => { rhs_start = n.unwrap() + rhs_start - 1; },
@@ -225,6 +234,7 @@ impl Add for NFA {
                 State::End => { concat.add_state(End); },
             };
         }
+        // loop back through concat and correct the stateid math where necessary
         for i in 0..concat.states.len() {
             match &concat.states[i] {
                 State::Match(c, n) => { 
@@ -238,7 +248,6 @@ impl Add for NFA {
                 _ => { },
             }
         }
-        println!("{:?}", concat.states);
         concat
     }
 }   
