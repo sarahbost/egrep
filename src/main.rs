@@ -37,7 +37,7 @@ use std::io::Read;
 
 fn main() {
     let opt = Opt::from_args();
-    //    println!("{:?}", opt);
+    
     // if arguments are passed in read from file/paths otherwise evaluate input from std::in
     if opt.parse {
         // makes a parse tree of input
@@ -63,12 +63,16 @@ fn main() {
         std::process::exit(0);
     }
     if let Some(num) = opt.num {
+        // if the number is less that 1, no random strings are generated and go straight to
+        // standard in to read from input 
         if (opt.paths.len() < 1) {
             print_stdin(&opt);
         }
 
-        println!("{:?}", opt.paths[0]);
+        //if user gives a number after gen flag, create nfa with the given regex 
         let nfa = NFA::from(&opt.paths[0]).unwrap();
+
+        //call helper function in nfa that returns a random string that the nfa accepts
         let mut expression_count = 0;
 
         while expression_count < num {
@@ -77,6 +81,7 @@ fn main() {
         }
     }
 
+    //read from files if they are given at the command line, otherwise read from standard input
     let result = if opt.paths.len() > 1 {
         print_files(&opt)
     } else {
@@ -99,9 +104,8 @@ fn print_stdin(opt: &Opt) -> io::Result<()> {
 // iterates through all paths/files and calls print function
 fn print_files(opt: &Opt) -> io::Result<()> {
     let regex = opt.paths[0].to_string();
-    //    Ok(eval(&regex, opt))
+
     for path in opt.paths.iter().skip(1) {
-        println!("{:?}", path);
         // we skipped 1 because the first one is regex to match later, everything else is files
         let file = File::open(path)?;
         let mut reader = io::BufReader::new(file);
@@ -130,7 +134,7 @@ use self::nfa::helpers::nfa_dot;
 use self::nfa::NFA;
 
 fn eval(input: &str, options: &Opt) {
-    //    println!("{:?}", options);
+    
     if options.parse {
         // makes a parse tree of input
         match Parser::parse(Tokenizer::new(input)) {
@@ -154,27 +158,8 @@ fn eval(input: &str, options: &Opt) {
         println!("{}", nfa_dot(&nfa));
         std::process::exit(0);
     }
-    // else if let Some(options.num)> 0 {
-    //      let nfa = NFA::from(input).unwrap();
-    //     let mut expression_count = 0;
-    //
-    //     if let Some(num) = option.num {
-    //     while expression_count < num {
-    //         println!("{}", nfa.random_regex());
-    //          expression_count = expression_count + 1;
-    //     }
-    //    }
-    // }
-
-    // if options.num {
-    // this is for using that number to generate random strings that match the nfa
-    // }
     else {
         // no matter what options are chosen, make the NFA out of the given regex and test the input
-        // for accepts based on the NFA
-        // let mut regex = ".*".to_string();
-        //regex.push_str(&options.paths[0]);
-        //regex.push_str(".*");
         let nfa = NFA::from(&options.paths[0]).unwrap();
         if nfa.accepts(input) {
             println!("{}", input);
