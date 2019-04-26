@@ -373,11 +373,10 @@ impl NFA {
                 }
             }
             AST::OneOrMore(ast) => {
-                //gets first regex
                 let fragment_ast = self.gen_fragment(&ast);
-                ////gets second regex 
-                //let mut fragment_repeat = self.gen_fragment(&ast);
                 let split_state = self.add_state(Split(Some(fragment_ast.start), None));
+                
+                //join fragment so the start points to to the split state 
                 self.join_fragment(&fragment_ast, split_state);
 
                 Fragment {
@@ -518,20 +517,20 @@ mod public_api {
     }
 
     #[test]
-    fn test20() {
+    fn test17() {
         let nfa = NFA::from("aaab").unwrap();
         assert_eq!(nfa.accepts("aaaab"), true);
     }
 
     #[test]
-    fn test21() {
+    fn test18() {
         let nfa = NFA::from(".*").unwrap();
         assert_eq!(nfa.accepts("bca"), true);
         assert_eq!(nfa.accepts(""), true);
     }
 
     #[test]
-    fn test17() {
+    fn test19() {
         let nfa = NFA::from("(a|o)(p|r).*").unwrap();
         assert_eq!(nfa.accepts("orange"), true);
         assert_eq!(nfa.accepts("apple"), true);
@@ -542,6 +541,31 @@ mod public_api {
         assert_eq!(nfa.accepts("prprprprprp"), false);
         assert_eq!(nfa.accepts(""), false);
     }
+
+    #[test]
+    fn test20() {
+        let nfa = NFA::from("a+b").unwrap();
+        assert_eq!(nfa.accepts("aaaaaaaaaaaaaaaaaaaaab"), true);
+    }
+
+    #[test]
+    fn test21() {
+        let nfa = NFA::from("a+b+").unwrap();
+         assert_eq!(nfa.accepts("b"), false);
+    }
+
+    #[test]
+    fn test22() { 
+         let nfa = NFA::from("a+b+").unwrap();
+        assert_eq!(nfa.accepts(""), false);
+    }
+
+    #[test]
+    fn test24() {
+        let nfa =  NFA::from("u+").unwrap();
+        assert_eq!(nfa.accepts("vacuum"), true);
+    }
+
 }
 #[cfg(test)]
 mod op_overload_test {

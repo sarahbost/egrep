@@ -75,8 +75,9 @@ fn main() {
         //call helper function in nfa that returns a random string that the nfa accepts
         let mut expression_count = 0;
 
-        while expression_count < num {
+        while expression_count < num { 
             println!("{}", nfa.random_regex());
+
             expression_count = expression_count + 1;
         }
     }

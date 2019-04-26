@@ -113,6 +113,12 @@ mod parsertests {
             let res = Parser::parse(Tokenizer::new(".")).unwrap();
             assert_eq!(AnyChar, res);
         }
+
+       #[test]
+        fn parse_kleene_plus() {
+             let res = Parser::parse(Tokenizer::new("a+")).unwrap();
+             assert_eq!(OneOrMore(Box::new(Char('a'))), res);
+        }
     }
 
     mod intermediatetests {
@@ -152,19 +158,17 @@ mod parsertests {
                 res
             );
         }
+
+         #[test]
+        fn parse4() {
+             let res = Parser::parse(Tokenizer::new("u+u+")).unwrap();
+             assert_eq!(Catenation(Box::new(OneOrMore(Box::new(Char('u')))),Box::new(OneOrMore(Box::new(Char('u'))))), res);
+        }
+
+        
     }
+    
 
-    //  mod hardtests {
-
-    //  use super::*;
-    //  use parser::*;
-
-    //  #[test]
-    //  fn challenge() {
-    //      let res = Parser::parse(Tokenizer::new("b(oo*|a)m")).unwrap();
-    //     assert_eq!(Catenation(Box::new(Char('b')), Box::new(Catenation(Box::new(Alternation(Box::new(Catenation(Box::new(Char('o')), Box::new(Closure(Box::new(Char('o')))), Box::new(Char('a'))))))), Box::new(Char('m')))), res);
-    //    }
-    //}
 }
 
 /**
@@ -213,7 +217,7 @@ impl<'tokens> Parser<'tokens> {
     fn closure(&mut self) -> Result<AST, String> {
         // closure receives input from cat()
         let first_term = self.atom()?;
-
+    
         //checks for kleene star
         if self.peek_kleene_star().is_some() {
             let kleene_star = self.take_next_token();
@@ -230,6 +234,7 @@ impl<'tokens> Parser<'tokens> {
     }
 
     fn cat(&mut self) -> Result<AST, String> {
+
         // this is somewhat the third stage of parsing, because maybe_regex maps here
         let first_term = self.closure()?; // see if first term is a closure AST
         let second_term = self.maybe_cat(); // check and see if second term is an AST also

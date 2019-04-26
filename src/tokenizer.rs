@@ -62,7 +62,7 @@ impl<'str> Iterator for Tokenizer<'str> {
                 '*' => self.lex_kleene_star(),
                 '.' => self.lex_any_char(),
                 '(' | ')' => self.lex_paren(),
-                '+' => self.lex_kleene_plus(), 
+                '+' => self.lex_kleene_plus(),
                 _ => self.lex_char(),
                 // these match options should allow whitespace to be recognized as a char token
             })
@@ -103,12 +103,12 @@ impl<'str> Tokenizer<'str> {
             _ => panic!("Unexpected char"),
         }
     }
-    
-    //consumers kleene plus and returns KleenePlus token 
+
+    //consumers kleene plus and returns KleenePlus token
     fn lex_kleene_plus(&mut self) -> Token {
         let c = self.chars.next().unwrap();
         match c {
-            '+' => Token::KleenePlus, 
+            '+' => Token::KleenePlus,
             _ => panic!("Unexpected char"),
         }
     }
@@ -205,6 +205,27 @@ mod iterator {
         assert_eq!(tokens.next(), Some(Token::RParen));
         assert_eq!(tokens.next(), Some(Token::AnyChar));
         assert_eq!(tokens.next(), None);
+    }
+
+    #[test]
+    fn kleeneplus() {
+        let mut tokens = Tokenizer::new("a+*|.b+");
+        assert_eq!(tokens.next(), Some(Token::Char('a')));
+        assert_eq!(tokens.next(), Some(Token::KleenePlus));
+        assert_eq!(tokens.next(), Some(Token::KleeneStar));
+        assert_eq!(tokens.next(), Some(Token::UnionBar));
+        assert_eq!(tokens.next(), Some(Token::AnyChar));
+        assert_eq!(tokens.next(), Some(Token::Char('b')));
+        assert_eq!(tokens.next(), Some(Token::KleenePlus));
+    }
+
+    #[test]
+    fn basic_kleene_pluse() {
+        let mut tokens = Tokenizer::new("(a)+");
+        assert_eq!(tokens.next(), Some(Token::LParen));
+        assert_eq!(tokens.next(), Some(Token::Char('a')));
+        assert_eq!(tokens.next(), Some(Token::RParen));
+        assert_eq!(tokens.next(), Some(Token::KleenePlus));
     }
 
 }
